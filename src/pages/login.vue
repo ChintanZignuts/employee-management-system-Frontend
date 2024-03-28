@@ -1,5 +1,4 @@
 <script setup>
-import { VForm } from 'vuetify/components/VForm'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
@@ -10,14 +9,77 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { useRouter } from 'vue-router'
+import { VForm } from 'vuetify/components/VForm'
+import axios from '../axiosConfig'
+
+const router = useRouter()
+
 
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 const isPasswordVisible = ref(false)
 const refVForm = ref()
-const email = ref('admin@demo.com')
-const password = ref('admin')
-const rememberMe = ref(false)
+const email = ref('')
+const password = ref('')
+
+const validateEmail = value => {
+  if (!value) {
+    return 'Email is required.'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return 'Email must be valid.'
+  }
+  
+  return true // Validation passed
+}
+
+const validatePassword = value => {
+  if (!value) {
+    return 'Password is required.'
+  }
+  
+  return true // Validation passed
+}
+
+const validationRules = {
+  email: [validateEmail],
+  password: [validatePassword],
+}
+
+const handleSubmit = async () => {
+  try {
+    const validate=await refVForm.value.validate()
+
+    console.log(validate)
+    if (!(validate.valid)) return // If validation fails, do not proceed with API call
+
+    // Prepare payload for API call
+    const payload = {
+      email: email.value,
+      password: password.value,
+    }
+
+    // Make API call using Axios
+    const response = await axios.post('/login', payload)
+
+    // Log response
+    localStorage.setItem('token', response.data.token)
+
+    // Redirect user to the desired route
+    if(response.data.user.type==="SA"){
+      router.push('/')
+    }
+    else{
+      console.log("you are not a super admin")
+    }
+
+    // You can handle further actions based on the response, such as redirecting the user, storing tokens, etc.
+  } catch (error) {
+    console.error('API call failed:', error)
+
+    // Handle error (e.g., show error message to the user)
+  }
+}
 </script>
 
 <template>
@@ -71,24 +133,9 @@ const rememberMe = ref(false)
         </VCardText>
 
         <VCardText>
-          <VAlert
-            color="primary"
-            variant="tonal"
-          >
-            <p class="text-caption mb-2">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-
-            <p class="text-caption mb-0">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
-          </VAlert>
-        </VCardText>
-
-        <VCardText>
           <VForm
             ref="refVForm"
-            @submit="() => { }"
+            @submit.prevent="handleSubmit"
           >
             <VRow>
               <!-- email -->
@@ -97,7 +144,9 @@ const rememberMe = ref(false)
                   v-model="email"
                   label="Email"
                   type="email"
+                  :rules="validationRules.email"
                   autofocus
+                  required
                 />
               </VCol>
 
@@ -108,14 +157,12 @@ const rememberMe = ref(false)
                   label="Password"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :rules="validationRules.password"
+                  required
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
 
                 <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
-                  <VCheckbox
-                    v-model="rememberMe"
-                    label="Remember me"
-                  />
                   <a
                     class="text-primary ms-2 mb-1"
                     href="#"
