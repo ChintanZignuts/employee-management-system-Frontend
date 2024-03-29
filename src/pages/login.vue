@@ -22,6 +22,7 @@ const isPasswordVisible = ref(false)
 const refVForm = ref()
 const email = ref('')
 const password = ref('')
+const errorMessage = ref('')
 
 const validateEmail = value => {
   if (!value) {
@@ -50,7 +51,7 @@ const handleSubmit = async () => {
   try {
     const validate=await refVForm.value.validate()
 
-    console.log(validate)
+    
     if (!(validate.valid)) return // If validation fails, do not proceed with API call
 
     // Prepare payload for API call
@@ -62,162 +63,172 @@ const handleSubmit = async () => {
     // Make API call using Axios
     const response = await axios.post('/login', payload)
 
-    // Log response
-    localStorage.setItem('token', response.data.token)
-
-    // Redirect user to the desired route
     if(response.data.user.type==="SA"){
+      localStorage.setItem('token', response.data.token)
       router.push('/')
     }
     else{
-      console.log("you are not a super admin")
+      errorMessage.value = "currently only super admin login to this page other functionality in progress...🙂  "
     }
+  
 
     // You can handle further actions based on the response, such as redirecting the user, storing tokens, etc.
   } catch (error) {
     console.error('API call failed:', error)
-
-    // Handle error (e.g., show error message to the user)
+    errorMessage.value = error.message
   }
 }
 </script>
 
 <template>
-  <VRow
-    no-gutters
-    class="auth-wrapper bg-surface"
-  >
-    <VCol
-      lg="8"
-      class="d-none d-lg-flex"
+  <div>
+    <VRow
+      no-gutters
+      class="auth-wrapper bg-surface"
     >
-      <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
-        <div class="d-flex align-center justify-center w-100 h-100">
+      <VCol
+        lg="8"
+        class="d-none d-lg-flex"
+      >
+        <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
+          <div class="d-flex align-center justify-center w-100 h-100">
+            <VImg
+              max-width="505"
+              :src="authThemeImg"
+              class="auth-illustration mt-16 mb-2"
+            />
+          </div>
+  
           <VImg
-            max-width="505"
-            :src="authThemeImg"
-            class="auth-illustration mt-16 mb-2"
+            :src="authThemeMask"
+            class="auth-footer-mask"
           />
         </div>
-
-        <VImg
-          :src="authThemeMask"
-          class="auth-footer-mask"
-        />
-      </div>
-    </VCol>
-
-    <VCol
-      cols="12"
-      lg="4"
-      class="auth-card-v2 d-flex align-center justify-center"
-    >
-      <VCard
-        flat
-        :max-width="500"
-        class="mt-12 mt-sm-0 pa-4"
+      </VCol>
+  
+      <VCol
+        cols="12"
+        lg="4"
+        class="auth-card-v2 d-flex align-center justify-center"
       >
-        <VCardText>
-          <VNodeRenderer
-            :nodes="themeConfig.app.logo"
-            class="mb-6"
-          />
-
-          <h5 class="text-h5 mb-1">
-            Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
-          </h5>
-
-          <p class="mb-0">
-            Please sign-in to your account and start the adventure
-          </p>
-        </VCardText>
-
-        <VCardText>
-          <VForm
-            ref="refVForm"
-            @submit.prevent="handleSubmit"
-          >
-            <VRow>
-              <!-- email -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="email"
-                  label="Email"
-                  type="email"
-                  :rules="validationRules.email"
-                  autofocus
-                  required
-                />
-              </VCol>
-
-              <!-- password -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="password"
-                  label="Password"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  :rules="validationRules.password"
-                  required
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                />
-
-                <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
+        <VCard
+          flat
+          :max-width="500"
+          class="mt-12 mt-sm-0 pa-4"
+        >
+          <VCardText>
+            <VNodeRenderer
+              :nodes="themeConfig.app.logo"
+              class="mb-6"
+            />
+  
+            <h5 class="text-h5 mb-1">
+              Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
+            </h5>
+  
+            <p class="mb-0">
+              Please sign-in to your account and start the adventure
+            </p>
+            
+            <VAlert
+              v-show="errorMessage"
+              color="primary"
+              variant="tonal"
+              dismissible
+            >
+              <p class="text-caption mb-2">
+                {{ errorMessage }}
+              </p>
+            </VAlert>
+          </VCardText>
+  
+          <VCardText>
+            <VForm
+              ref="refVForm"
+              @submit.prevent="handleSubmit"
+            >
+              <VRow>
+                <!-- email -->
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="email"
+                    label="Email"
+                    type="email"
+                    :rules="validationRules.email"
+                    autofocus
+                    required
+                  />
+                </VCol>
+  
+                <!-- password -->
+                <VCol cols="12">
+                  <AppTextField
+                    v-model="password"
+                    label="Password"
+                    :type="isPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                    :rules="validationRules.password"
+                    required
+                    @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  />
+  
+                  <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
+                    <a
+                      class="text-primary ms-2 mb-1"
+                      href="#"
+                    >
+                      Forgot Password?
+                    </a>
+                  </div>
+  
+                  <VBtn
+                    block
+                    type="submit"
+                  >
+                    Login
+                  </VBtn>
+                </VCol>
+  
+                <!-- create account -->
+                <VCol
+                  cols="12"
+                  class="text-center"
+                >
+                  <span>New on our platform?</span>
+  
                   <a
-                    class="text-primary ms-2 mb-1"
+                    class="text-primary ms-2"
                     href="#"
                   >
-                    Forgot Password?
+                    Create an account
                   </a>
-                </div>
-
-                <VBtn
-                  block
-                  type="submit"
+                </VCol>
+  
+                <VCol
+                  cols="12"
+                  class="d-flex align-center"
                 >
-                  Login
-                </VBtn>
-              </VCol>
-
-              <!-- create account -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <span>New on our platform?</span>
-
-                <a
-                  class="text-primary ms-2"
-                  href="#"
+                  <VDivider />
+  
+                  <span class="mx-4">or</span>
+  
+                  <VDivider />
+                </VCol>
+  
+                <!-- auth providers -->
+                <VCol
+                  cols="12"
+                  class="text-center"
                 >
-                  Create an account
-                </a>
-              </VCol>
-
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-
-                <span class="mx-4">or</span>
-
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
-              </VCol>
-            </VRow>
-          </VForm>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+                  <AuthProvider />
+                </VCol>
+              </VRow>
+            </VForm>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+  </div>
 </template>
 
 <style lang="scss">

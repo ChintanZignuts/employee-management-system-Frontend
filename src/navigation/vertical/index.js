@@ -1,12 +1,12 @@
 export default [
   {
-    title: 'Home',
+    title: 'Dashboard',
     to: { name: 'index' },
-    icon: { icon: 'tabler-smart-home' },
+    icon: { icon: 'tabler-chart-treemap' },
   },
   {
-    title: 'Second page',
-    to: { name: 'second-page' },
-    icon: { icon: 'tabler-file' },
+    title: 'Company',
+    to: { name: 'company' },
+    icon: { icon: 'tabler-building-skyscraper' },
   },
 ]

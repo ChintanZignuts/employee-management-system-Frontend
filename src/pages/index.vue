@@ -1,25 +1,111 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import axios from '../axiosConfig'
+
+
+const userData = ref(null)
+const isLoading = ref(false)
+const error = ref(null)
+
+const fetchData = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    
+    // Check if token is available
+    if (!token) {
+      throw new Error('No token available')
+    }
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    isLoading.value = true
+
+    const response = await axios.get('/stats', config)
+
+    userData.value = response.data
+
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const userListMeta = computed(() => {
+  return [
+    {
+      icon: 'tabler-user',
+      color: 'primary',
+      title: 'Session',
+      stats: userData.value ? userData.value.user_count : 'N/A',
+      subtitle: 'Total Users',
+    },
+    {
+      icon: 'tabler-users-group',
+      color: 'error',
+      title: 'Total employee',
+      stats: userData.value ? userData.value.employee_count : 'N/A',
+      subtitle: 'All Company employee and Company Admin',
+    },
+    {
+      icon: 'tabler-building-estate',
+      color: 'success',
+      title: 'Total company',
+      stats: userData.value ? userData.value.company_count : 'N/A',
+      subtitle: 'Number of Company Associated with Us',
+    },
+    {
+      icon: 'tabler-briefcase',
+      color: 'warning',
+      title: 'Total available Job',
+      stats: userData.value ? userData.value.job_count : 'N/A',
+      subtitle: 'Number of job opening currently active',
+    },
+  ]
+})
+
+onMounted(() => {
+  fetchData()
+})
+</script>
+
 <template>
   <div>
-    <VCard
-      class="mb-6"
-      title="Kick start your project 🚀"
-    >
-      <VCardText>All the best for your new project.</VCardText>
-      <VCardText>
-        Please make sure to read our <a
-          href="https://demos.pixinvent.com/vuexy-vuejs-admin-template/documentation/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-decoration-none"
-        >
-          Template Documentation
-        </a> to understand where to go from here and how to use our template.
-      </VCardText>
-    </VCard>
+    <VRow>
+      <VCol
+        v-for="meta in userListMeta"
+        :key="meta.title"
+        cols="12"
+        sm="6"
+        lg="3"
+      >
+        <VCard>
+          <VCardText class="d-flex justify-space-between">
+            <div>
+              <span>{{ meta.title }}</span>
+              <div class="d-flex align-center gap-2 my-1">
+                <h6 class="text-h4">
+                  {{ meta.stats }}
+                </h6>
+              </div>
+              <span>{{ meta.subtitle }}</span>
+            </div>
 
-    <VCard title="Want to integrate JWT? 🔒">
-      <VCardText>We carefully crafted JWT flow so you can implement JWT with ease and with minimum efforts.</VCardText>
-      <VCardText>Please read our  JWT Documentation to get more out of JWT authentication.</VCardText>
-    </VCard>
+            <VAvatar
+              rounded
+              variant="tonal"
+              :color="meta.color"
+              :icon="meta.icon"
+            />
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
   </div>
 </template>
+
+

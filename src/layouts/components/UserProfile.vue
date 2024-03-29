@@ -1,5 +1,64 @@
 <script setup>
 import avatar1 from '@images/avatars/avatar-1.png'
+import { useRouter } from 'vue-router'
+import axios from '../../axiosConfig'
+import { ref } from 'vue'
+
+const router = useRouter()
+const userData = ref(null)
+
+const fetchUserData = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      throw new Error('Token not found in localStorage')
+    }
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    const response = await axios.get('/user', config)
+
+    userData.value = response.data.user
+  } catch (error) {
+    console.error('Failed to fetch user data:', error.message)
+  }
+}
+
+
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    if (token) {
+    
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+
+      const response = await axios.post('/logout', null, config)
+
+      if (response.status === 200) {
+        localStorage.removeItem('token')
+        router.push('/login')
+      }
+    } else {
+      console.error('Token not found in localStorage')
+    }
+  } catch (error) {
+    console.error('Logout failed:', error)
+  }
+}
+
+onMounted(() => {
+  fetchUserData()
+})
 </script>
 
 <template>
@@ -48,7 +107,7 @@ import avatar1 from '@images/avatars/avatar-1.png'
             </template>
 
             <VListItemTitle class="font-weight-semibold">
-              John Doe
+              {{ userData.first_name }} {{ userData.last_name }}
             </VListItemTitle>
             <VListItemSubtitle>Admin</VListItemSubtitle>
           </VListItem>
@@ -69,30 +128,34 @@ import avatar1 from '@images/avatars/avatar-1.png'
           </VListItem>
 
           <!-- 👉 Settings -->
-          <VListItem link>
+          <!--
+            <VListItem link>
             <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="tabler-settings"
-                size="22"
-              />
+            <VIcon
+            class="me-2"
+            icon="tabler-settings"
+            size="22"
+            />
             </template>
 
             <VListItemTitle>Settings</VListItemTitle>
-          </VListItem>
+            </VListItem> 
+          -->
 
           <!-- 👉 Pricing -->
-          <VListItem link>
+          <!--
+            <VListItem link>
             <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="tabler-currency-dollar"
-                size="22"
-              />
+            <VIcon
+            class="me-2"
+            icon="tabler-currency-dollar"
+            size="22"
+            />
             </template>
 
             <VListItemTitle>Pricing</VListItemTitle>
-          </VListItem>
+            </VListItem> 
+          -->
 
           <!-- 👉 FAQ -->
           <VListItem link>
@@ -111,7 +174,7 @@ import avatar1 from '@images/avatars/avatar-1.png'
           <VDivider class="my-2" />
 
           <!-- 👉 Logout -->
-          <VListItem to="/login">
+          <VListItem @click="handleLogout">
             <template #prepend>
               <VIcon
                 class="me-2"
