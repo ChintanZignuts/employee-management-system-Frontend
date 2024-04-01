@@ -63,6 +63,7 @@ const handleSubmit = async () => {
     // Make API call using Axios
     const response = await axios.post('/login', payload)
 
+
     if(response.data.user.type==="SA"){
       localStorage.setItem('token', response.data.token)
       router.push('/')
