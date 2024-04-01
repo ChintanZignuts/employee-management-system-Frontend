@@ -9,6 +9,17 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach((to, from, next) => {
+  const access_token = localStorage.getItem('token')
+  const isAuthenticated = access_token !== null
+  
+  if (to.path !== '/login' && !isAuthenticated) {
+    next('/login') // Redirect to login only if not already on the login page
+  } else {
+    next() // Continue navigation
+  }
+})
+
 
 // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
 export default router

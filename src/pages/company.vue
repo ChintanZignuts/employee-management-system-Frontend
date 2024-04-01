@@ -8,7 +8,8 @@ import axios from '../axiosConfig'
 const deleteDialog = ref(false)
 const isAddNewUserDrawerVisible = ref(false)
 const editCompanyData = ref(null)
-
+const isEditMode = ref(false)
+const deleteItemId = ref(null)
 
 const userList = ref([])
 
@@ -44,6 +45,7 @@ const resolveStatusVariant = status => {
     }
   else if (status === "I")
     return {
+
       color: 'success',
       text: 'Inactive',
     }
@@ -54,20 +56,40 @@ const resolveStatusVariant = status => {
     }
 }
 
-const openAddNewUserDrawer = companyData => {
+const openAddNewUserDrawer =async companyData => {
   if (companyData) {
-    
-    editCompanyData.value = companyData
+    try {
+      const token = localStorage.getItem('token')
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      }
+
+      const response = await axios.get(`/companies/${companyData.id}`, config)
+
+      
+      editCompanyData.value = response.data
+      isEditMode.value = true
+      
+    } catch (error) {
+      console.error('Failed to fetch company details:', error.message)
+
+      // Handle error appropriately, e.g., show error message
+    }
   } else {
    
     editCompanyData.value = null
-    console.log(editCompanyData.value)
+    isEditMode.value = false
+    
   }
   isAddNewUserDrawerVisible.value = true
 }
 
 const deleteItem = item => {
- 
+  console.log(item)
+  deleteItemId.value=item
   deleteDialog.value = true
 }
 
@@ -76,9 +98,28 @@ const closeDelete = () => {
  
 }
 
-const deleteItemConfirm = () => {
- 
-  closeDelete()
+const deleteItemConfirm = async () => {
+  try {
+   
+    const token = localStorage.getItem('token')
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    await axios.delete(`/companies/${deleteItemId.value}`, config)
+
+    // Remove the company from the list
+    userList.value = userList.value.filter(company => company.id !== deleteItemId.value)
+    fetchData()
+
+    // Close the delete dialog
+    closeDelete()
+  } catch (error) {
+    console.error('Failed to delete company:', error.message)
+  }
 }
 
 const fetchData = async () => {
@@ -99,11 +140,38 @@ const fetchData = async () => {
   }
 }
 
-const addNewUser = userData => {
-  userListStore.addUser(userData)
+const addNewUser = async userData => {
+  try {
+    const token = localStorage.getItem('token')
 
-  // refetch User
-  fetchUsers()
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    if (isEditMode.value) {
+      // Edit mode: send a PUT request to update existing user data
+      const response = await axios.put(`/companies/${editCompanyData.value.id}`, userData, config)
+
+     
+      console.log('User updated successfully:', response.data)
+    } else {
+      // Not in edit mode: send a POST request to create a new user
+      const response = await axios.post('companies/create', userData, config)
+
+    
+      console.log('User created successfully:', response.data)
+    }
+
+    // Refetch users after successful update or creation
+    fetchData()
+    
+    // Close the drawer after updating or creating user
+    isAddNewUserDrawerVisible.value = false
+  } catch (error) {
+    console.error('Failed to update or create user:', error.message)
+  }
 }
 
 onMounted(() => {
@@ -125,7 +193,7 @@ onMounted(() => {
     <VDataTable
       :headers="headers"
       :items="userList"
-      :items-per-page="5"
+      :items-per-page="10"
     >
       <!-- Name column -->
       <template #item.name="{ item }">
@@ -184,7 +252,7 @@ onMounted(() => {
           <IconBtn @click="openAddNewUserDrawer(item.raw)">
             <VIcon icon="mdi-pencil-outline" />
           </IconBtn>
-          <IconBtn @click="deleteItem(item.raw)">
+          <IconBtn @click="deleteItem(item.raw.id)">
             <VIcon icon="mdi-delete-outline" />
           </IconBtn>
         </div>
@@ -223,6 +291,7 @@ onMounted(() => {
     <AddNewUserDrawer
       v-model:isDrawerOpen="isAddNewUserDrawerVisible"
       :company-data="editCompanyData"
+      
       @user-data="addNewUser"
     />
   </div>
