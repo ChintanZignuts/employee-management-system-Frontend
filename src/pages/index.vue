@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import axios from '../axiosConfig'
 
 
@@ -40,7 +40,7 @@ const userListMeta = computed(() => {
     {
       icon: 'tabler-user',
       color: 'primary',
-      title: 'Session',
+      title: 'Users',
       stats: userData.value ? userData.value.user_count : 'N/A',
       subtitle: 'Total Users',
     },

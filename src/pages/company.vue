@@ -10,7 +10,6 @@ const isAddNewUserDrawerVisible = ref(false)
 const editCompanyData = ref(null)
 const isEditMode = ref(false)
 const deleteItemId = ref(null)
-
 const userList = ref([])
 
 // headers
@@ -64,6 +63,7 @@ const openAddNewUserDrawer =async companyData => {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`, 
+          'content-type': 'multipart/form-data',
         },
       }
 
@@ -79,7 +79,7 @@ const openAddNewUserDrawer =async companyData => {
       // Handle error appropriately, e.g., show error message
     }
   } else {
-   
+    
     editCompanyData.value = null
     isEditMode.value = false
     
@@ -129,6 +129,7 @@ const fetchData = async () => {
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
+        'content-type': 'multipart/form-data',
       },
     }
 

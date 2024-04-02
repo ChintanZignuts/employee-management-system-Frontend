@@ -22,7 +22,7 @@ const refForm = ref()
 const CompanyName = ref('')
 const CompanyEmail = ref('')
 const Website = ref('https://')
-const LogoUrl = ref('https://')
+const LogoUrl = ref(null)
 const Location = ref('')
 const Status = ref('Active')
 const AdminFirstName = ref('')
@@ -34,87 +34,97 @@ const DOB = ref('')
 const AdminJoiningDate = ref('')
 const EmployeeNumber = ref('')
 
-
+const clearForm = () => {
+  // Reset all form data
+ 
+  refForm.value?.reset()
+  Website.value = 'https://'
+  Status.value = 'Active'
+  refForm.value?.resetValidation()
+  
+}
 
 const closeNavigationDrawer = () => {
   emit('update:isDrawerOpen', false)
-
-  nextTick(() => {
-    refForm.value?.reset()
-    refForm.value?.resetValidation()
-    
-  })
+  refForm.value?.resetValidation()
+  nextTick(clearForm)
 }
 
 watch(() => props.companyData, newValue => {
   if (newValue) {
-    // Populate form fields if companyData is not null
     CompanyName.value = newValue.name
     CompanyEmail.value = newValue.company_email
-    Website.value = newValue.website || 'https://'
-    LogoUrl.value = newValue.logo_url || 'https://'
-    Location.value = newValue.location || ''
+    Website.value = newValue.website 
+    Location.value = newValue.location 
     Status.value=newValue.status==="A"?'Active':"Inactive"
-    AdminFirstName.value = newValue.admin.first_name || ''
-    AdminLastName.value = newValue.admin.last_name || ''
-    AdminEmail.value = newValue.admin_email || ''
-    Address.value = newValue.admin.address || ''
-    City.value =newValue.admin.city || ''
-    DOB.value =newValue.admin.dob || null
-    AdminJoiningDate.value = newValue.company_user[0].joining_date || null
-    EmployeeNumber.value = newValue.company_user[0].emp_no || ''
-
+    AdminFirstName.value = newValue.admin.first_name 
+    AdminLastName.value = newValue.admin.last_name
+    AdminEmail.value=newValue.admin.email
+    Address.value = newValue.admin.address 
+    City.value =newValue.admin.city 
+    DOB.value =newValue.admin.dob 
+    AdminJoiningDate.value = newValue.company_users[0].joining_date 
+    EmployeeNumber.value = newValue.company_users[0].emp_no 
   } 
   else {
     // No company data, reset form
-    refForm.value?.reset()
-
     refForm.value?.resetValidation()
-    AdminJoiningDate.value = ''
-    DOB.value = ''
+
+    clearForm()
   }
 })
 
 
-const onSubmit = () => {
-  console.log("hii")
-  console.log(refForm.value?.validate().valid)
+const onSubmit = async () => {
+  try {
+    const validation=await refForm.value?.validate()
 
-  refForm.value?.validate().then(({ valid }) => {
-    
-    if (valid) {
-      const formData = {
+    if (validation.valid) {
+      const formData = new FormData()
+
+      console.log(LogoUrl.value)
+      formData.append('logo', LogoUrl.value)
+
+      const addformData = {
         name: CompanyName.value,
         company_email: CompanyEmail.value,
         website: Website.value,
-        logo_url: LogoUrl.value,
+        logo: LogoUrl.value,
         location: Location.value,
-        status: Status.value==='Active'?'A':'I',
-        "admin": {
+        status: Status.value === 'Active' ? 'A' : 'I',
+        admin: {
           first_name: AdminFirstName.value,
           last_name: AdminLastName.value,
-          email: AdminEmail.value,
           address: Address.value,
           city: City.value,
           dob: DOB.value,
         },
-        "company_user": {
+        company_user: {
           joining_date: AdminJoiningDate.value,
           emp_no: EmployeeNumber.value,
         },
       }
 
-      emit('userData', formData)
-      
+      // Include AdminEmail for new companies
+      if (!props.companyData) {
+        addformData.admin.email = AdminEmail.value
+      }
 
-      emit('update:isDrawerOpen', false)
+      emit('userData', addformData)
+      refForm.value?.resetValidation()
+
+      closeNavigationDrawer()
+
+      // Reset form after submission (consider using a separate reset function)
       nextTick(() => {
-        refForm.value?.reset()
-        refForm.value?.resetValidation()
+        clearForm()
       })
-    }
-  })
+    }  
+  } catch (error) {
+    console.error('Error during form validation:', error)
+  }
 }
+
 
 
 
@@ -145,7 +155,7 @@ const handleDrawerModelValueUpdate = val => {
           <VForm
             ref="refForm"
             v-model="isFormValid"
-            
+            enctype="multipart/form-data"
             @submit.prevent="onSubmit"
           >
             <VRow>
@@ -175,10 +185,10 @@ const handleDrawerModelValueUpdate = val => {
               </VCol>
               <!-- 👉 Logo URL -->
               <VCol cols="12">
-                <AppTextField
+                <VFileInput
                   v-model="LogoUrl"
-                  :rules="[urlValidator]"
-                  label="Logo URL"
+                  label="Upload logo"
+                  prepend-icon="tabler-camera"
                 />
               </VCol>
               <!-- 👉 Location -->
@@ -215,10 +225,7 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
               <!-- 👉 Admin Email -->
-              <VCol
-                v-if="!props.companyData"
-                cols="12"
-              >
+              <VCol cols="12">
                 <AppTextField
                   v-model="AdminEmail"
                   :rules="[requiredValidator, emailValidator]"
