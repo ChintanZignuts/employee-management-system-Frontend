@@ -70,7 +70,7 @@ const openAddNewUserDrawer =async companyData => {
       const response = await axios.get(`/companies/${companyData.id}`, config)
 
       
-      editCompanyData.value = response.data
+      editCompanyData.value = response.data.data
       isEditMode.value = true
       
     } catch (error) {
@@ -135,7 +135,7 @@ const fetchData = async () => {
 
     const response = await axios.get('/companies', config)
 
-    userList.value = response.data
+    userList.value = response.data.data
   } catch (error) {
     console.error('Failed to fetch company data:', error.message)
   }
@@ -148,12 +148,15 @@ const addNewUser = async userData => {
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
     }
 
+    console.log(config)
+    console.log(userData)
     if (isEditMode.value) {
       // Edit mode: send a PUT request to update existing user data
-      const response = await axios.put(`/companies/${editCompanyData.value.id}`, userData, config)
+      const response = await axios.post(`/companies/${editCompanyData.value.id}`, userData, config)
 
      
       console.log('User updated successfully:', response.data)
@@ -208,11 +211,11 @@ onMounted(() => {
           >
             <VImg
               v-if="item.raw.avatar"
-              :src="item.raw.avatar"
+              src=""
             />
             <span v-else>{{ avatarText(item.raw.name) }}</span>
           </VAvatar>
-
+          
           <!-- Name and location -->
           <div class="d-flex flex-column ms-3">
             <span class="d-block font-weight-medium text--primary text-truncate">{{ item.raw.name }}</span>

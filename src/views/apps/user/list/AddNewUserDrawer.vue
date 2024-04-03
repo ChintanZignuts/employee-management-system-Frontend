@@ -40,6 +40,7 @@ const clearForm = () => {
   refForm.value?.reset()
   Website.value = 'https://'
   Status.value = 'Active'
+  LogoUrl.value=null
   refForm.value?.resetValidation()
   
 }
@@ -76,20 +77,21 @@ watch(() => props.companyData, newValue => {
 
 
 const onSubmit = async () => {
+  console.log("hii")
   try {
-    const validation=await refForm.value?.validate()
+    let validation = await refForm.value?.validate()
 
+    console.log(validation)
     if (validation.valid) {
       const formData = new FormData()
-
-      console.log(LogoUrl.value)
-      formData.append('logo', LogoUrl.value)
+      if (LogoUrl.value && LogoUrl.value[0]) {
+        formData.append('logo', LogoUrl.value[0])
+      }
 
       const addformData = {
         name: CompanyName.value,
         company_email: CompanyEmail.value,
         website: Website.value,
-        logo: LogoUrl.value,
         location: Location.value,
         status: Status.value === 'Active' ? 'A' : 'I',
         admin: {
@@ -108,6 +110,10 @@ const onSubmit = async () => {
       // Include AdminEmail for new companies
       if (!props.companyData) {
         addformData.admin.email = AdminEmail.value
+        if (LogoUrl.value && LogoUrl.value[0]) {
+          addformData.logo = LogoUrl.value[0]
+        
+        }
       }
 
       emit('userData', addformData)
@@ -155,6 +161,7 @@ const handleDrawerModelValueUpdate = val => {
           <VForm
             ref="refForm"
             v-model="isFormValid"
+            validate-on="submit"
             enctype="multipart/form-data"
             @submit.prevent="onSubmit"
           >
@@ -184,7 +191,10 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
               <!-- 👉 Logo URL -->
-              <VCol cols="12">
+              <VCol
+                v-if="!props.companyData"
+                cols="12"
+              >
                 <VFileInput
                   v-model="LogoUrl"
                   label="Upload logo"
@@ -225,7 +235,10 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
               <!-- 👉 Admin Email -->
-              <VCol cols="12">
+              <VCol
+                v-if="!props.companyData"
+                cols="12"
+              >
                 <AppTextField
                   v-model="AdminEmail"
                   :rules="[requiredValidator, emailValidator]"
