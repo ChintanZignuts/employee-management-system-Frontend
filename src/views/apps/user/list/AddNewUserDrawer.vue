@@ -40,6 +40,8 @@ const clearForm = () => {
   refForm.value?.reset()
   Website.value = 'https://'
   Status.value = 'Active'
+  DOB.value=''
+  AdminJoiningDate.value=''
   LogoUrl.value=null
   refForm.value?.resetValidation()
   
@@ -60,6 +62,7 @@ watch(() => props.companyData, newValue => {
     Status.value=newValue.status==="A"?'Active':"Inactive"
     AdminFirstName.value = newValue.admin.first_name 
     AdminLastName.value = newValue.admin.last_name
+
     AdminEmail.value=newValue.admin.email
     Address.value = newValue.admin.address 
     City.value =newValue.admin.city 
@@ -80,7 +83,6 @@ const onSubmit = async () => {
   console.log("hii")
   try {
     let validation = await refForm.value?.validate()
-
     console.log(validation)
     if (validation.valid) {
       const formData = new FormData()
@@ -233,20 +235,17 @@ const handleDrawerModelValueUpdate = val => {
                   :rules="[requiredValidator]"
                   label="Admin Last Name"
                 />
-                {{ props.companyData!==null?"1":"2" }}
-                {{ AdminEmail }}
               </VCol>
               <!-- 👉 Admin Email -->
-              <VCol
-                v-if="!props.companyData"
-                cols="12"
-              >
+              <VCol cols="12">
                 <AppTextField
                   v-model="AdminEmail"
-                  :rules="[requiredValidator, emailValidator]"
                   label="Admin Email"
+                  :rules="[requiredValidator, emailValidator]"
+                  :disabled="props.companyData !== null"
                 />
               </VCol>
+            
               <!-- 👉 Address -->
               <VCol cols="12">
                 <AppTextField

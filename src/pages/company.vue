@@ -5,12 +5,19 @@ import { onMounted, ref } from 'vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
 
+import { useCompanyStore } from '@/stores/useCompanyStore'
+
+
+const CompanyStore = useCompanyStore()
+
 const deleteDialog = ref(false)
 const isAddNewUserDrawerVisible = ref(false)
 const editCompanyData = ref(null)
 const isEditMode = ref(false)
 const deleteItemId = ref(null)
 const userList = ref([])
+const permentDelete=ref(false)
+
 
 // headers
 const headers = [
@@ -39,13 +46,13 @@ const headers = [
 const resolveStatusVariant = status => {
   if (status === "A")
     return {
-      color: 'primary',
+      color: 'success',
       text: 'Active',
     }
   else if (status === "I")
     return {
 
-      color: 'success',
+      color: 'primary',
       text: 'Inactive',
     }
   else
@@ -88,7 +95,7 @@ const openAddNewUserDrawer =async companyData => {
 }
 
 const deleteItem = item => {
-  console.log(item)
+ 
   deleteItemId.value=item
   deleteDialog.value = true
 }
@@ -109,7 +116,7 @@ const deleteItemConfirm = async () => {
       },
     }
 
-    await axios.delete(`/companies/${deleteItemId.value}`, config)
+    await axios.post(`/companies/delete/${deleteItemId.value}`, { forceDelete: permentDelete.value }, config)
 
     // Remove the company from the list
     userList.value = userList.value.filter(company => company.id !== deleteItemId.value)
@@ -129,7 +136,6 @@ const fetchData = async () => {
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
-        'content-type': 'multipart/form-data',
       },
     }
 
@@ -155,28 +161,29 @@ const addNewUser = async userData => {
     console.log(config)
     console.log(userData)
     if (isEditMode.value) {
-      // Edit mode: send a PUT request to update existing user data
+      
       const response = await axios.post(`/companies/${editCompanyData.value.id}`, userData, config)
 
      
       console.log('User updated successfully:', response.data)
     } else {
-      // Not in edit mode: send a POST request to create a new user
+     
       const response = await axios.post('companies/create', userData, config)
 
     
       console.log('User created successfully:', response.data)
     }
 
-    // Refetch users after successful update or creation
+   
     fetchData()
     
-    // Close the drawer after updating or creating user
+   
     isAddNewUserDrawerVisible.value = false
   } catch (error) {
     console.error('Failed to update or create user:', error.message)
   }
 }
+
 
 onMounted(() => {
   fetchData()
@@ -210,8 +217,8 @@ onMounted(() => {
             :variant="!item.raw.avatar ? 'tonal' : undefined"
           >
             <VImg
-              v-if="item.raw.avatar"
-              src=""
+              v-if="item.raw.logo_url"
+              :src="`http://127.0.0.1:8000/storage/logos/${item.raw.logo_url}`"
             />
             <span v-else>{{ avatarText(item.raw.name) }}</span>
           </VAvatar>
@@ -235,7 +242,7 @@ onMounted(() => {
           :href="item.raw.website"
           target="_blank"
           rel="noopener noreferrer"
-        ><span>www.{{ item.raw.name }}.com</span></a>
+        ><span>{{ item.raw.name }}</span></a>
       </template>
 
       <!-- Status column -->
@@ -271,7 +278,12 @@ onMounted(() => {
         <VCardTitle>
           Are you sure you want to delete this item?
         </VCardTitle>
-
+        <div class="demo-space-x">
+          <VCheckbox
+            v-model="permentDelete"
+            label=" Delete Company Permanent"
+          />
+        </div>
         <VCardActions>
           <VSpacer />
           <VBtn
