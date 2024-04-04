@@ -161,7 +161,7 @@ const handleDrawerModelValueUpdate = val => {
           <VForm
             ref="refForm"
             v-model="isFormValid"
-            validate-on="submit"
+            
             enctype="multipart/form-data"
             @submit.prevent="onSubmit"
           >
@@ -233,6 +233,8 @@ const handleDrawerModelValueUpdate = val => {
                   :rules="[requiredValidator]"
                   label="Admin Last Name"
                 />
+                {{ props.companyData!==null?"1":"2" }}
+                {{ AdminEmail }}
               </VCol>
               <!-- 👉 Admin Email -->
               <VCol
