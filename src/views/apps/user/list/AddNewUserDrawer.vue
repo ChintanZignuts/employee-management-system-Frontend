@@ -60,15 +60,15 @@ watch(() => props.companyData, newValue => {
     Website.value = newValue.website 
     Location.value = newValue.location 
     Status.value=newValue.status==="A"?'Active':"Inactive"
-    AdminFirstName.value = newValue.admin.first_name 
-    AdminLastName.value = newValue.admin.last_name
+    AdminFirstName.value = newValue.company_admin.first_name 
+    AdminLastName.value = newValue.company_admin.last_name
 
-    AdminEmail.value=newValue.admin.email
-    Address.value = newValue.admin.address 
-    City.value =newValue.admin.city 
-    DOB.value =newValue.admin.dob 
-    AdminJoiningDate.value = newValue.company_users[0].joining_date 
-    EmployeeNumber.value = newValue.company_users[0].emp_no 
+    AdminEmail.value=newValue.company_admin.email
+    Address.value = newValue.company_admin.address 
+    City.value =newValue.company_admin.city 
+    DOB.value =newValue.company_admin.dob 
+    AdminJoiningDate.value = newValue.company_admin.joining_date 
+    EmployeeNumber.value = newValue.company_admin.emp_no 
   } 
   else {
     // No company data, reset form
@@ -95,6 +95,7 @@ const onSubmit = async () => {
         company_email: CompanyEmail.value,
         website: Website.value,
         location: Location.value,
+        logo: LogoUrl.value[0],
         status: Status.value === 'Active' ? 'A' : 'I',
         admin: {
           first_name: AdminFirstName.value,
@@ -102,8 +103,6 @@ const onSubmit = async () => {
           address: Address.value,
           city: City.value,
           dob: DOB.value,
-        },
-        company_user: {
           joining_date: AdminJoiningDate.value,
           emp_no: EmployeeNumber.value,
         },
@@ -193,10 +192,7 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
               <!-- 👉 Logo URL -->
-              <VCol
-                v-if="!props.companyData"
-                cols="12"
-              >
+              <VCol cols="12">
                 <VFileInput
                   v-model="LogoUrl"
                   label="Upload logo"

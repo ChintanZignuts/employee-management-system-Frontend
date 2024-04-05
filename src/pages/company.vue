@@ -5,10 +5,6 @@ import { onMounted, ref } from 'vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
 
-import { useCompanyStore } from '@/stores/useCompanyStore'
-
-
-const CompanyStore = useCompanyStore()
 
 const deleteDialog = ref(false)
 const isAddNewUserDrawerVisible = ref(false)
@@ -17,7 +13,7 @@ const isEditMode = ref(false)
 const deleteItemId = ref(null)
 const userList = ref([])
 const permentDelete=ref(false)
-
+const loading=ref(false)
 
 // headers
 const headers = [
@@ -78,7 +74,11 @@ const openAddNewUserDrawer =async companyData => {
 
       
       editCompanyData.value = response.data.data
-      isEditMode.value = true
+      if(editCompanyData.value){
+
+        isEditMode.value = true
+        isAddNewUserDrawerVisible.value = true
+      }
       
     } catch (error) {
       console.error('Failed to fetch company details:', error.message)
@@ -89,9 +89,8 @@ const openAddNewUserDrawer =async companyData => {
     
     editCompanyData.value = null
     isEditMode.value = false
-    
+    isAddNewUserDrawerVisible.value = true
   }
-  isAddNewUserDrawerVisible.value = true
 }
 
 const deleteItem = item => {
@@ -130,7 +129,9 @@ const deleteItemConfirm = async () => {
 }
 
 const fetchData = async () => {
+  loading.value=true
   try {
+
     const token = localStorage.getItem('token')
 
     const config = {
@@ -145,9 +146,11 @@ const fetchData = async () => {
   } catch (error) {
     console.error('Failed to fetch company data:', error.message)
   }
+  loading.value=false
 }
 
 const addNewUser = async userData => {
+  loading.value=true
   try {
     const token = localStorage.getItem('token')
 
@@ -162,7 +165,7 @@ const addNewUser = async userData => {
     console.log(userData)
     if (isEditMode.value) {
       
-      const response = await axios.post(`/companies/${editCompanyData.value.id}`, userData, config)
+      const response = await axios.post(`/companies/update/${editCompanyData.value.id}`, userData, config)
 
      
       console.log('User updated successfully:', response.data)
@@ -182,6 +185,7 @@ const addNewUser = async userData => {
   } catch (error) {
     console.error('Failed to update or create user:', error.message)
   }
+  loading.value=false
 }
 
 
@@ -192,84 +196,96 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- 👉 Add user button -->
-    <div class="d-flex justify-end ma-3">
-      <VBtn
-        prepend-icon="tabler-plus"
-        @click="openAddNewUserDrawer(null)"
-      >
-        Add New Company
-      </VBtn>
-    </div>
-    <VDataTable
-      :headers="headers"
-      :items="userList"
-      :items-per-page="10"
+    <!-- <Snackbar /> -->
+    <div
+      v-if="loading"
+      class="d-flex justify-center"
     >
-      <!-- Name column -->
-      <template #item.name="{ item }">
-        <div class="d-flex align-center">
-          <!-- Avatar -->
-          <VAvatar
-            size="32"
-            :color="item.raw.avatar ? '' : 'primary'"
-            :class="item.raw.avatar ? '' : 'v-avatar-light-bg primary--text'"
-            :variant="!item.raw.avatar ? 'tonal' : undefined"
-          >
-            <VImg
-              v-if="item.raw.logo_url"
-              :src="`http://127.0.0.1:8000/storage/logos/${item.raw.logo_url}`"
-            />
-            <span v-else>{{ avatarText(item.raw.name) }}</span>
-          </VAvatar>
-          
-          <!-- Name and location -->
-          <div class="d-flex flex-column ms-3">
-            <span class="d-block font-weight-medium text--primary text-truncate">{{ item.raw.name }}</span>
-            <small>{{ item.raw.location }}</small>
-          </div>
-        </div>
-      </template>
-
-      <!-- Email column -->
-      <template #item.company_email="{ item }">
-        <span>{{ item.raw.company_email }}</span>
-      </template>
-
-      <!-- Website column -->
-      <template #item.website="{ item }">
-        <a
-          :href="item.raw.website"
-          target="_blank"
-          rel="noopener noreferrer"
-        ><span>{{ item.raw.name }}</span></a>
-      </template>
-
-      <!-- Status column -->
-      <template #item.status="{ item }">
-        <VChip
-          :color="resolveStatusVariant(item.raw.status).color"
-          size="small"
-          label
-          class="text-capitalize"
+      <VProgressCircular
+        :size="40"
+        color="primary"
+        indeterminate
+      />
+    </div>
+    <!-- 👉 Add user button -->
+    <div v-else>
+      <div class="d-flex justify-end ma-3">
+        <VBtn
+          prepend-icon="tabler-plus"
+          @click="openAddNewUserDrawer(null)"
         >
-          {{ resolveStatusVariant(item.raw.status).text }}
-        </VChip>
-      </template>
+          Add New Company
+        </VBtn>
+      </div>
+      <VDataTable
+        :headers="headers"
+        :items="userList"
+        :items-per-page="10"
+      >
+        <!-- Name column -->
+        <template #item.name="{ item }">
+          <div class="d-flex align-center">
+            <!-- Avatar -->
+            <VAvatar
+              size="32"
+              :color="item.raw.avatar ? '' : 'primary'"
+              :class="item.raw.avatar ? '' : 'v-avatar-light-bg primary--text'"
+              :variant="!item.raw.avatar ? 'tonal' : undefined"
+            >
+              <VImg
+                v-if="item.raw.logo_url"
+                :src="`http://127.0.0.1:8000/storage/logos/${item.raw.logo_url}`"
+              />
+              <span v-else>{{ avatarText(item.raw.name) }}</span>
+            </VAvatar>
+          
+            <!-- Name and location -->
+            <div class="d-flex flex-column ms-3">
+              <span class="d-block font-weight-medium text--primary text-truncate">{{ item.raw.name }}</span>
+              <small>{{ item.raw.location }}</small>
+            </div>
+          </div>
+        </template>
 
-      <!-- Actions column -->
-      <template #item.actions="{ item }">
-        <div class="d-flex gap-1">
-          <IconBtn @click="openAddNewUserDrawer(item.raw)">
-            <VIcon icon="mdi-pencil-outline" />
-          </IconBtn>
-          <IconBtn @click="deleteItem(item.raw.id)">
-            <VIcon icon="mdi-delete-outline" />
-          </IconBtn>
-        </div>
-      </template>
-    </VDataTable>
+        <!-- Email column -->
+        <template #item.company_email="{ item }">
+          <span>{{ item.raw.company_email }}</span>
+        </template>
 
+        <!-- Website column -->
+        <template #item.website="{ item }">
+          <a
+            :href="item.raw.website"
+            target="_blank"
+            rel="noopener noreferrer"
+          ><span>{{ item.raw.name }}</span></a>
+        </template>
+
+        <!-- Status column -->
+        <template #item.status="{ item }">
+          <VChip
+            :color="resolveStatusVariant(item.raw.status).color"
+            size="small"
+            label
+            class="text-capitalize"
+          >
+            {{ resolveStatusVariant(item.raw.status).text }}
+          </VChip>
+        </template>
+
+        <!-- Actions column -->
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <IconBtn @click="openAddNewUserDrawer(item.raw)">
+              <VIcon icon="mdi-pencil-outline" />
+            </IconBtn>
+            <IconBtn @click="deleteItem(item.raw.id)">
+              <VIcon icon="mdi-delete-outline" />
+            </IconBtn>
+          </div>
+        </template>
+      </VDataTable>
+    </div>
     <VDialog
       v-model="deleteDialog"
       max-width="500px"
