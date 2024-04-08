@@ -1,7 +1,7 @@
 <script setup>
-import { emailValidator, requiredValidator, urlValidator } from "@validators";
-import { defineProps, nextTick, ref } from "vue";
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import { emailValidator, requiredValidator, urlValidator } from "@validators"
+import { defineProps, nextTick, ref } from "vue"
+import { PerfectScrollbar } from "vue3-perfect-scrollbar"
 
 const props = defineProps({
   isDrawerOpen: {
@@ -12,82 +12,82 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-});
+})
 
-const emit = defineEmits(["update:isDrawerOpen", "userData"]);
-const statusOptions = ["Active", "Inactive"];
-const isFormValid = ref(false);
-const refForm = ref();
+const emit = defineEmits(["update:isDrawerOpen", "userData"])
+const statusOptions = ["Active", "Inactive"]
+const isFormValid = ref(false)
+const refForm = ref()
 
-const CompanyName = ref("");
-const CompanyEmail = ref("");
-const Website = ref("https://");
-const LogoUrl = ref(null);
-const Location = ref("");
-const Status = ref("Active");
-const AdminFirstName = ref("");
-const AdminLastName = ref("");
-const AdminEmail = ref("");
-const Address = ref("");
-const City = ref("");
-const DOB = ref("");
-const AdminJoiningDate = ref("");
-const EmployeeNumber = ref("");
+const CompanyName = ref("")
+const CompanyEmail = ref("")
+const Website = ref("https://")
+const LogoUrl = ref(null)
+const Location = ref("")
+const Status = ref("Active")
+const AdminFirstName = ref("")
+const AdminLastName = ref("")
+const AdminEmail = ref("")
+const Address = ref("")
+const City = ref("")
+const DOB = ref("")
+const AdminJoiningDate = ref("")
+const EmployeeNumber = ref("")
 
 const clearForm = () => {
   // Reset all form data
 
-  refForm.value?.reset();
-  Website.value = "https://";
-  Status.value = "Active";
-  DOB.value = "";
-  AdminJoiningDate.value = "";
-  LogoUrl.value = null;
-  refForm.value?.resetValidation();
-};
+  refForm.value?.reset()
+  Website.value = "https://"
+  Status.value = "Active"
+  DOB.value = ""
+  AdminJoiningDate.value = ""
+  LogoUrl.value = null
+  refForm.value?.resetValidation()
+}
 
 const closeNavigationDrawer = () => {
-  emit("update:isDrawerOpen", false);
-  refForm.value?.resetValidation();
-  nextTick(clearForm);
-};
+  emit("update:isDrawerOpen", false)
+  refForm.value?.resetValidation()
+  nextTick(clearForm)
+}
 
 watch(
   () => props.companyData,
-  (newValue) => {
+  newValue => {
     if (newValue) {
-      CompanyName.value = newValue.name;
-      CompanyEmail.value = newValue.company_email;
-      Website.value = newValue.website;
-      Location.value = newValue.location;
-      Status.value = newValue.status === "A" ? "Active" : "Inactive";
-      AdminFirstName.value = newValue.company_admin.first_name;
-      AdminLastName.value = newValue.company_admin.last_name;
+      CompanyName.value = newValue.name
+      CompanyEmail.value = newValue.company_email
+      Website.value = newValue.website
+      Location.value = newValue.location
+      Status.value = newValue.status === "A" ? "Active" : "Inactive"
+      AdminFirstName.value = newValue.company_admin.first_name
+      AdminLastName.value = newValue.company_admin.last_name
 
-      AdminEmail.value = newValue.company_admin.email;
-      Address.value = newValue.company_admin.address;
-      City.value = newValue.company_admin.city;
-      DOB.value = newValue.company_admin.dob;
-      AdminJoiningDate.value = newValue.company_admin.joining_date;
-      EmployeeNumber.value = newValue.company_admin.emp_no;
+      AdminEmail.value = newValue.company_admin.email
+      Address.value = newValue.company_admin.address
+      City.value = newValue.company_admin.city
+      DOB.value = newValue.company_admin.dob
+      AdminJoiningDate.value = newValue.company_admin.joining_date
+      EmployeeNumber.value = newValue.company_admin.emp_no
     } else {
       // No company data, reset form
-      refForm.value?.resetValidation();
+      refForm.value?.resetValidation()
 
-      clearForm();
+      clearForm()
     }
-  }
-);
+  },
+)
 
 const onSubmit = async () => {
-  console.log("hii");
+  console.log("hii")
   try {
-    let validation = await refForm.value?.validate();
-    console.log(validation);
+    let validation = await refForm.value?.validate()
+    console.log(validation)
     if (validation.valid) {
-      const formData = new FormData();
+      const formData = new FormData()
       if (LogoUrl.value && LogoUrl.value[0]) {
-        formData.append("logo", LogoUrl.value[0]);
+        formData.append("logo", LogoUrl.value[0])
       }
 
       const addformData = {
@@ -106,34 +106,34 @@ const onSubmit = async () => {
           joining_date: AdminJoiningDate.value,
           emp_no: EmployeeNumber.value,
         },
-      };
+      }
 
       // Include AdminEmail for new companies
       if (!props.companyData) {
-        addformData.admin.email = AdminEmail.value;
+        addformData.admin.email = AdminEmail.value
         if (LogoUrl.value && LogoUrl.value[0]) {
-          addformData.logo = LogoUrl.value[0];
+          addformData.logo = LogoUrl.value[0]
         }
       }
 
-      emit("userData", addformData);
-      refForm.value?.resetValidation();
+      emit("userData", addformData)
+      refForm.value?.resetValidation()
 
-      closeNavigationDrawer();
+      closeNavigationDrawer()
 
       // Reset form after submission (consider using a separate reset function)
       nextTick(() => {
-        clearForm();
-      });
+        clearForm()
+      })
     }
   } catch (error) {
-    console.error("Error during form validation:", error);
+    console.error("Error during form validation:", error)
   }
-};
+}
 
-const handleDrawerModelValueUpdate = (val) => {
-  emit("update:isDrawerOpen", val);
-};
+const handleDrawerModelValueUpdate = val => {
+  emit("update:isDrawerOpen", val)
+}
 </script>
 
 <template>
@@ -196,7 +196,10 @@ const handleDrawerModelValueUpdate = (val) => {
               </VCol>
               <!-- 👉 Location -->
               <VCol cols="12">
-                <AppTextField v-model="Location" label="Location" />
+                <AppTextField
+                  v-model="Location"
+                  label="Location"
+                />
               </VCol>
               <VCol cols="12">
                 <VSelect
@@ -272,7 +275,10 @@ const handleDrawerModelValueUpdate = (val) => {
                 />
               </VCol>
               <!-- 👉 Employee Number -->
-              <VCol cols="12" v-if="props.companyData !== null">
+              <VCol
+                v-if="props.companyData !== null"
+                cols="12"
+              >
                 <AppTextField
                   v-model="EmployeeNumber"
                   label="Employee Number"
@@ -281,7 +287,12 @@ const handleDrawerModelValueUpdate = (val) => {
               </VCol>
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
-                <VBtn type="submit" class="me-3"> Submit </VBtn>
+                <VBtn
+                  type="submit"
+                  class="me-3"
+                >
+                  Submit
+                </VBtn>
                 <VBtn
                   variant="tonal"
                   color="secondary"

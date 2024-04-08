@@ -1,13 +1,13 @@
 <script setup>
 import { avatarText } from '@/@core/utils/formatters'
-import AddNewUserDrawer from '@/views/apps/user/list/AddNewUserDrawer.vue'
+import AddNewCompanyDrawer from '@/views/apps/user/list/AddNewCompanyDrawer.vue'
 import { onMounted, ref } from 'vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
 
 
 const deleteDialog = ref(false)
-const isAddNewUserDrawerVisible = ref(false)
+const isAddNewCompanyDrawerVisible = ref(false)
 const editCompanyData = ref(null)
 const isEditMode = ref(false)
 const deleteItemId = ref(null)
@@ -58,7 +58,7 @@ const resolveStatusVariant = status => {
     }
 }
 
-const openAddNewUserDrawer =async companyData => {
+const openAddNewCompanyDrawer =async companyData => {
   if (companyData) {
     try {
       const token = localStorage.getItem('token')
@@ -77,7 +77,7 @@ const openAddNewUserDrawer =async companyData => {
       if(editCompanyData.value){
 
         isEditMode.value = true
-        isAddNewUserDrawerVisible.value = true
+        isAddNewCompanyDrawerVisible.value = true
       }
       
     } catch (error) {
@@ -89,7 +89,7 @@ const openAddNewUserDrawer =async companyData => {
     
     editCompanyData.value = null
     isEditMode.value = false
-    isAddNewUserDrawerVisible.value = true
+    isAddNewCompanyDrawerVisible.value = true
   }
 }
 
@@ -181,7 +181,7 @@ const addNewUser = async userData => {
     fetchData()
     
    
-    isAddNewUserDrawerVisible.value = false
+    isAddNewCompanyDrawerVisible.value = false
   } catch (error) {
     console.error('Failed to update or create user:', error.message)
   }
@@ -212,7 +212,7 @@ onMounted(() => {
       <div class="d-flex justify-end ma-3">
         <VBtn
           prepend-icon="tabler-plus"
-          @click="openAddNewUserDrawer(null)"
+          @click="openAddNewCompanyDrawer(null)"
         >
           Add New Company
         </VBtn>
@@ -276,7 +276,7 @@ onMounted(() => {
         <!-- Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
-            <IconBtn @click="openAddNewUserDrawer(item.raw)">
+            <IconBtn @click="openAddNewCompanyDrawer(item.raw)">
               <VIcon icon="mdi-pencil-outline" />
             </IconBtn>
             <IconBtn @click="deleteItem(item.raw.id)">
@@ -320,10 +320,9 @@ onMounted(() => {
         </VCardActions>
       </VCard>
     </VDialog>
-    <AddNewUserDrawer
-      v-model:isDrawerOpen="isAddNewUserDrawerVisible"
+    <AddNewCompanyDrawer
+      v-model:isDrawerOpen="isAddNewCompanyDrawerVisible"
       :company-data="editCompanyData"
-      
       @user-data="addNewUser"
     />
   </div>
