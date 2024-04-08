@@ -1,15 +1,20 @@
 <script setup>
 import { avatarText } from '@/@core/utils/formatters'
+import AddEmployeeDrawer from '@/views/apps/user/list/AddEmployeeDrawer.vue'
 import { onMounted, ref } from 'vue'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
 
 
+
 const deleteDialog = ref(false)
+const isAddEmployeeDrawerVisible = ref(false)
 const deleteItemId = ref(null)
 const employeeList = ref([])
 const permentDelete = ref(false)
 const loading = ref(false)
+const editEmployeeData=ref(null)
+const isEditMode = ref(false)
 
 // Function to fetch employee data
 const fetchData = async () => {
@@ -42,9 +47,9 @@ const headers = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const getTypeFullType = abbreviation => {
-  if (abbreviation === 'CA') return 'Company Admin'
-  else if (abbreviation === 'E') return 'Employee'
+const getTypeFullType = type => {
+  if (type === 'CA') return 'Company Admin'
+  else if (type === 'E') return 'Employee'
   else return 'Unknown'
 }
 
@@ -83,6 +88,77 @@ const closeDelete = () => {
   deleteDialog.value = false
 }
 
+const openAddEmployeeDrawer = async employeeId => {
+
+  if (employeeId) {
+    try {
+      const token = localStorage.getItem('token')
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+
+      const response = await axios.get(`employee/${employeeId}`, config)
+
+      editEmployeeData.value=response.data.data
+      if(editEmployeeData.value){
+        isAddEmployeeDrawerVisible.value = true
+        isEditMode.value = true
+      }
+    } catch (error) {
+      console.error('Failed to fetch Employee details:', error.message)
+    }
+  }
+  else{
+    editEmployeeData.value = null
+    isEditMode.value = false
+    isAddEmployeeDrawerVisible.value = true
+  }
+}
+
+const addNewEmployee = async employeeData => {
+  
+  try {
+    loading.value=true
+
+    const token = localStorage.getItem('token')
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    
+    if (isEditMode.value) {
+      
+      const response = await axios.post(`employee/update/${editEmployeeData.value.id}`, employeeData, config)
+
+     
+      console.log('Employee updated successfully:', response.data)
+    } else {
+     
+      const response = await axios.post('employee/create', employeeData, config)
+
+    
+      console.log('Employee created successfully:', response.data)
+    }
+
+   
+    fetchData()
+    
+   
+    isAddEmployeeDrawerVisible.value = false
+    loading.value=false
+  } catch (error) {
+    console.error('Failed to update or create Employee:', error.message)
+  }
+  
+  loading.value=false
+}
+
 // Fetch employee data when component is mounted
 onMounted(() => {
   fetchData()
@@ -106,7 +182,7 @@ onMounted(() => {
       <div class="d-flex justify-end ma-3">
         <VBtn
           prepend-icon="tabler-plus"
-          @click="openAddNewUserDrawer(null)"
+          @click="openAddEmployeeDrawer(null)"
         >
           Add New Employee
         </VBtn>
@@ -158,7 +234,7 @@ onMounted(() => {
         <!-- Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
-            <IconBtn @click="openAddNewUserDrawer(item.raw)">
+            <IconBtn @click="openAddEmployeeDrawer(item.raw.id)">
               <VIcon icon="mdi-pencil-outline" />
             </IconBtn>
             <IconBtn @click="deleteItem(item.raw.id)">
@@ -197,5 +273,10 @@ onMounted(() => {
         </VCardActions>
       </VCard>
     </VDialog>
+    <AddEmployeeDrawer
+      v-model:isEmployeeDrawerOpen="isAddEmployeeDrawerVisible"
+      :employee-data="editEmployeeData"
+      @employee-data="addNewEmployee"
+    />
   </div>
 </template>

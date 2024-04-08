@@ -149,7 +149,7 @@ const fetchData = async () => {
   loading.value=false
 }
 
-const addNewUser = async userData => {
+const addNewCompany = async userData => {
   loading.value=true
   try {
     const token = localStorage.getItem('token')
@@ -323,7 +323,7 @@ onMounted(() => {
     <AddNewCompanyDrawer
       v-model:isDrawerOpen="isAddNewCompanyDrawerVisible"
       :company-data="editCompanyData"
-      @user-data="addNewUser"
+      @user-data="addNewCompany"
     />
   </div>
 </template>

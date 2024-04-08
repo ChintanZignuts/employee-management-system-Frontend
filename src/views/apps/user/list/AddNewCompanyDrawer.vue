@@ -80,7 +80,7 @@ watch(
 )
 
 const onSubmit = async () => {
-  console.log("hii")
+  
   try {
     let validation = await refForm.value?.validate()
     console.log(validation)
