@@ -86,39 +86,40 @@ const onSubmit = async () => {
     console.log(validation)
     if (validation.valid) {
       const formData = new FormData()
+
+      // Append logo to form data if available
       if (LogoUrl.value && LogoUrl.value[0]) {
         formData.append("logo", LogoUrl.value[0])
       }
 
-      const addformData = {
-        name: CompanyName.value,
-        company_email: CompanyEmail.value,
-        website: Website.value,
-        location: Location.value,
-        logo: LogoUrl.value[0],
-        status: Status.value === "Active" ? "A" : "I",
-        admin: {
-          first_name: AdminFirstName.value,
-          last_name: AdminLastName.value,
-          address: Address.value,
-          city: City.value,
-          dob: DOB.value,
-          joining_date: AdminJoiningDate.value,
-          emp_no: EmployeeNumber.value,
-        },
-      }
+      // Append company data to form data
+      formData.append("name", CompanyName.value)
+      formData.append("company_email", CompanyEmail.value)
+      formData.append("website", Website.value)
+      formData.append("location", Location.value)
+      formData.append("status", Status.value === "Active" ? "A" : "I")
+
+      // Append admin data to form data
+      formData.append("admin[first_name]", AdminFirstName.value)
+      formData.append("admin[last_name]", AdminLastName.value)
+      formData.append("admin[address]", Address.value)
+      formData.append("admin[city]", City.value)
+      formData.append("admin[dob]", DOB.value)
+      formData.append("admin[joining_date]", AdminJoiningDate.value)
+      formData.append("admin[emp_no]", EmployeeNumber.value)
 
       // Include AdminEmail for new companies
       if (!props.companyData) {
-        addformData.admin.email = AdminEmail.value
-        if (LogoUrl.value && LogoUrl.value[0]) {
-          addformData.logo = LogoUrl.value[0]
-        }
+        formData.append("admin[email]", AdminEmail.value)
       }
 
-      emit("userData", addformData)
+      // Emit userData event with form data
+      emit("userData", formData)
+
+      // Reset form validation
       refForm.value?.resetValidation()
 
+      // Close navigation drawer
       closeNavigationDrawer()
 
       // Reset form after submission (consider using a separate reset function)
@@ -130,6 +131,7 @@ const onSubmit = async () => {
     console.error("Error during form validation:", error)
   }
 }
+
 
 const handleDrawerModelValueUpdate = val => {
   emit("update:isDrawerOpen", val)
