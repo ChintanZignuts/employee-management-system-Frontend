@@ -1,5 +1,4 @@
 <script setup>
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
 import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
@@ -174,12 +173,12 @@ const handleSubmit = async () => {
                   />
   
                   <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
-                    <a
+                    <RouterLink
                       class="text-primary ms-2 mb-1"
-                      href="#"
+                      :to="{ name: 'forgot-password' }"
                     >
                       Forgot Password?
-                    </a>
+                    </RouterLink>
                   </div>
   
                   <VBtn
@@ -191,38 +190,29 @@ const handleSubmit = async () => {
                 </VCol>
   
                 <!-- create account -->
-                <VCol
-                  cols="12"
-                  class="text-center"
-                >
-                  <span>New on our platform?</span>
+               
   
-                  <a
-                    class="text-primary ms-2"
-                    href="#"
-                  >
-                    Create an account
-                  </a>
-                </VCol>
-  
-                <VCol
+                <!--
+                  <VCol
                   cols="12"
                   class="d-flex align-center"
-                >
+                  >
                   <VDivider />
   
                   <span class="mx-4">or</span>
   
                   <VDivider />
-                </VCol>
-  
+                  </VCol>
+                -->
                 <!-- auth providers -->
-                <VCol
+                <!--
+                  <VCol
                   cols="12"
                   class="text-center"
-                >
+                  >
                   <AuthProvider />
-                </VCol>
+                  </VCol>
+                -->
               </VRow>
             </VForm>
           </VCardText>

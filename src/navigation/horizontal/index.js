@@ -14,4 +14,9 @@ export default [
     to: { name: 'employee-page' },
     icon: { icon: 'tabler-users-group' },
   },
+  {
+    title: 'Jobs',
+    to: { name: 'jobs-page' },
+    icon: { icon: 'tabler-briefcase' },
+  },
 ]

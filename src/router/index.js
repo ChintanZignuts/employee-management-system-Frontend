@@ -6,6 +6,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     ...setupLayouts(routes),
+   
   ],
 })
 
@@ -13,10 +14,16 @@ router.beforeEach((to, from, next) => {
   const access_token = localStorage.getItem('token')
   const isAuthenticated = access_token !== null
   
-  if (to.path !== '/login' && !isAuthenticated) {
-    next('/login') // Redirect to login only if not already on the login page
+  // If user is not authenticated and the route is not the login page, redirect to login
+  if (to.path === '/forgot-password' || to.path.startsWith('/reset-password/') ) {
+    // Allow access to the forgot password page regardless of authentication status
+    next()
+  } else if (!isAuthenticated && to.path !== '/login') {
+    // Redirect unauthenticated users to the login page
+    next('/login')
   } else {
-    next() // Continue navigation
+    // Continue navigation for authenticated users and other routes
+    next()
   }
 })
 

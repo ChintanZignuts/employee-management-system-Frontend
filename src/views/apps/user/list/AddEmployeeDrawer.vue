@@ -1,8 +1,8 @@
 <script setup>
-import { emailValidator, requiredValidator } from "@validators";
-import { defineProps, onMounted, ref } from "vue";
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
-import axios from "../../../../axiosConfig";
+import { emailValidator, requiredValidator } from "@validators"
+import { defineProps, onMounted, ref } from "vue"
+import { PerfectScrollbar } from "vue3-perfect-scrollbar"
+import axios from "../../../../axiosConfig"
 
 const props = defineProps({
   isEmployeeDrawerOpen: {
@@ -13,57 +13,58 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-});
+})
 
-const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"]);
-const companyOptions = ref([]);
-const isFormValid = ref(false);
-const refForm = ref();
-const FirstName = ref("");
-const LastName = ref("");
-const Email = ref("");
-const Address = ref("");
-const City = ref("");
-const DOB = ref(null);
-const Salary = ref(null);
-const JoiningDate = ref(null);
-const CompanyId = ref(null);
-const selectedCompany = ref(null);
+const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"])
+const companyOptions = ref([])
+const isFormValid = ref(false)
+const refForm = ref()
+const FirstName = ref("")
+const LastName = ref("")
+const Email = ref("")
+const Address = ref("")
+const City = ref("")
+const DOB = ref(null)
+const Salary = ref(null)
+const JoiningDate = ref(null)
+const CompanyId = ref(null)
+const selectedCompany = ref(null)
+
 const clearForm = () => {
-  refForm.value?.reset();
-  DOB.value = "";
-  JoiningDate.value = "";
-  refForm.value?.resetValidation();
-};
+  refForm.value?.reset()
+  DOB.value = ""
+  JoiningDate.value = ""
+  refForm.value?.resetValidation()
+}
 
 const closeNavigationDrawer = () => {
-  emit("update:isEmployeeDrawerOpen", false);
-  clearForm();
-};
+  emit("update:isEmployeeDrawerOpen", false)
+  clearForm()
+}
 
 watch(
   () => props.employeeData,
-  (newValue) => {
+  newValue => {
     if (newValue) {
-      FirstName.value = newValue.first_name;
-      LastName.value = newValue.last_name;
-      Email.value = newValue.email;
-      Address.value = newValue.address;
-      City.value = newValue.city;
-      DOB.value = newValue.dob;
-      Salary.value = newValue.salary;
-      JoiningDate.value = newValue.joining_date;
-      CompanyId.value = newValue.company_id;
+      FirstName.value = newValue.first_name
+      LastName.value = newValue.last_name
+      Email.value = newValue.email
+      Address.value = newValue.address
+      City.value = newValue.city
+      DOB.value = newValue.dob
+      Salary.value = newValue.salary
+      JoiningDate.value = newValue.joining_date
+      CompanyId.value = newValue.company_id
     } else {
-      clearForm();
+      clearForm()
     }
-  }
-);
+  },
+)
 
 const onSubmit = async () => {
   try {
-    let validate = await refForm.value?.validate();
-    console.log(validate);
+    let validate = await refForm.value?.validate()
+    console.log(validate)
     if (validate.valid) {
       const formData = {
         first_name: FirstName.value,
@@ -74,49 +75,49 @@ const onSubmit = async () => {
         dob: DOB.value,
         salary: Salary.value,
         joining_date: JoiningDate.value,
-      };
+      }
 
       if (!props.employeeData) {
-        formData.company_id = CompanyId.value;
+        formData.company_id = CompanyId.value
       }
-      emit("employeeData", formData);
+      emit("employeeData", formData)
     }
-    closeNavigationDrawer();
+    closeNavigationDrawer()
     nextTick(() => {
-      clearForm();
-    });
+      clearForm()
+    })
   } catch (error) {
-    notify("error", "Failed to submit form");
-    console.error("Error:", error.message);
+    notify("error", "Failed to submit form")
+    console.error("Error:", error.message)
   }
-};
+}
 
 const fetchCompanyOptions = async () => {
   try {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    };
+    }
 
-    const response = await axios.get("employee/companies/option", config);
+    const response = await axios.get("employee/companies/option", config)
 
-    companyOptions.value = response.data;
-    console.log(companyOptions.value);
+    companyOptions.value = response.data
+  
   } catch (error) {
-    console.error("Error fetching company options:", error);
+    console.error("Error fetching company options:", error)
   }
-};
+}
 
-const handleDrawerModelValueUpdate = (val) => {
-  emit("update:isEmployeeDrawerOpen", val);
-};
+const handleDrawerModelValueUpdate = val => {
+  emit("update:isEmployeeDrawerOpen", val)
+}
 
 onMounted(() => {
-  fetchCompanyOptions();
-});
+  fetchCompanyOptions()
+})
 </script>
 
 <template>
@@ -137,7 +138,11 @@ onMounted(() => {
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm
+            ref="refForm"
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
+          >
             <VRow>
               <!-- 👉 Full name -->
               <VCol cols="12">
@@ -190,7 +195,11 @@ onMounted(() => {
                 />
               </VCol>
               <VCol cols="12">
-                <AppTextField v-model="Salary" label="Salary" type="number" />
+                <AppTextField
+                  v-model="Salary"
+                  label="Salary"
+                  type="number"
+                />
               </VCol>
               <VCol cols="12">
                 <AppDateTimePicker
@@ -203,8 +212,8 @@ onMounted(() => {
 
               <VCol cols="12">
                 <AppAutocomplete
-                  label="Company"
                   v-model="CompanyId"
+                  label="Company"
                   :items="companyOptions"
                   item-title="name"
                   item-value="id"
@@ -214,7 +223,12 @@ onMounted(() => {
               </VCol>
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
-                <VBtn type="submit" class="me-3"> Submit </VBtn>
+                <VBtn
+                  type="submit"
+                  class="me-3"
+                >
+                  Submit
+                </VBtn>
                 <VBtn
                   variant="tonal"
                   color="secondary"
