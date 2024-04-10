@@ -10,22 +10,34 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const access_token = localStorage.getItem('token')
+
+  // const config=
+  // const responce= await axios.("/user",)
   const isAuthenticated = access_token !== null
-  
+  const type=localStorage.getItem('type')
+
   // If user is not authenticated and the route is not the login page, redirect to login
   if (to.path === '/forgot-password' || to.path.startsWith('/reset-password/') ) {
-    // Allow access to the forgot password page regardless of authentication status
+   
     next()
   } else if (!isAuthenticated && to.path !== '/login') {
-    // Redirect unauthenticated users to the login page
+    
     next('/login')
-  } else {
-    // Continue navigation for authenticated users and other routes
-    next()
   }
+  else {
+    if (type != 'SA' && to.path === '/company') {
+      // If the user is a company admin (CA) and trying to access /company path, redirect to home
+      next('/')
+    } else {
+      // Allow navigation for authenticated users or for other routes
+      next()
+    }
+  }
+ 
 })
+
 
 
 // Docs: https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards

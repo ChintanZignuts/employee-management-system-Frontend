@@ -95,6 +95,7 @@ const onSubmit = async () => {
 const fetchCompanyOptions = async () => {
   try {
     const token = localStorage.getItem("token")
+    const type = localStorage.getItem("type")
 
     const config = {
       headers: {
@@ -103,9 +104,11 @@ const fetchCompanyOptions = async () => {
     }
 
     const response = await axios.get("employee/companies/option", config)
-
+   
     companyOptions.value = response.data
-  
+    
+   
+    
   } catch (error) {
     console.error("Error fetching company options:", error)
   }

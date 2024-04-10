@@ -1,8 +1,8 @@
 <script setup>
 import avatar1 from '@images/avatars/avatar-1.png'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../../axiosConfig'
-import { ref } from 'vue'
 
 const router = useRouter()
 const userData = ref(null)
@@ -56,6 +56,15 @@ const handleLogout = async () => {
   }
 }
 
+const changePassword = [
+  {
+    type: 'changePassword',
+    icon: 'tabler-lock-cog',
+    title: 'Change Password',
+    name: 'change_password',
+  },
+]
+
 onMounted(() => {
   fetchUserData()
 })
@@ -86,6 +95,7 @@ onMounted(() => {
       >
         <VList>
           <!-- 👉 User Avatar & Name -->
+          
           <VListItem>
             <template #prepend>
               <VListItemAction start>
@@ -172,7 +182,29 @@ onMounted(() => {
 
           <!-- Divider -->
           <VDivider class="my-2" />
+          <PerfectScrollbar :options="{ wheelPropagation: false }">
+            <template
+              v-for="item in changePassword"
+              :key="item.title"
+            >
+              <VListItem
+                v-if="item.type === 'changePassword'"
+                :to="item"
+                @click="item.onClick && item.onClick()"
+              >
+                <template #prepend>
+                  <VIcon
+                    class="me-2"
+                    :icon="item.icon"
+                    size="22"
+                  />
+                </template>
 
+                <VListItemTitle>{{ item.title }}</VListItemTitle>
+              </VListItem>
+            </template>
+          </PerfectScrollbar>
+          
           <!-- 👉 Logout -->
           <VListItem @click="handleLogout">
             <template #prepend>

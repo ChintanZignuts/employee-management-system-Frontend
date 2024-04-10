@@ -63,12 +63,14 @@ const handleSubmit = async () => {
     const response = await axios.post('/login', payload)
 
 
-    if(response.data.user.type==="SA"){
+    if(response.data.user.type==="SA" || response.data.user.type==="CA"){
       localStorage.setItem('token', response.data.token)
+      localStorage.setItem('type', response.data.user.type)
+
       router.push('/')
     }
     else{
-      errorMessage.value = "currently only super admin login to this page other functionality in progress...🙂  "
+      errorMessage.value = "currently only super admin and company admin login to this page other functionality in progress...🙂  "
     }
   
 

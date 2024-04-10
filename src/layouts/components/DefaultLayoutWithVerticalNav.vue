@@ -1,5 +1,5 @@
 <script setup>
-import navItems from '@/navigation/vertical'
+import getFilteredNavItems from '@/navigation/vertical'
 import { useThemeConfig } from '@core/composable/useThemeConfig'
 
 // Components
@@ -9,6 +9,9 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+
+const userType=localStorage.getItem('type')
+const navItems = getFilteredNavItems(userType)
 
 const { appRouteTransition, isLessThanOverlayNavBreakpoint } = useThemeConfig()
 const { width: windowWidth } = useWindowSize()

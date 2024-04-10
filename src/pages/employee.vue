@@ -19,6 +19,7 @@ const fetchData = async () => {
   loading.value = true
   try {
     const token = localStorage.getItem("token")
+    const type=localStorage.getItem('type')
 
     const config = {
       headers: {
@@ -26,9 +27,11 @@ const fetchData = async () => {
       },
     }
 
+    
     const response = await axios.get("/allemployee", config)
 
     employeeList.value = response.data.data
+    console.log(employeeList.value)
   } catch (error) {
     console.error("Failed to fetch employee data:", error.message)
   }

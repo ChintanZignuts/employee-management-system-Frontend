@@ -42,14 +42,14 @@ const userListMeta = computed(() => {
       color: 'primary',
       title: 'Users',
       stats: userData.value ? userData.value.user_count : 'N/A',
-      subtitle: 'Total Users',
+      subtitle: 'Total Users on over platform',
     },
     {
       icon: 'tabler-users-group',
       color: 'error',
       title: 'Total employee',
       stats: userData.value ? userData.value.employee_count : 'N/A',
-      subtitle: 'All Company employee and Company Admin',
+      subtitle: 'Company employee and Company Admin',
     },
     {
       icon: 'tabler-building-estate',

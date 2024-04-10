@@ -6,15 +6,19 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { confirmedValidator, emailValidator, passwordValidator, requiredValidator } from "@validators"
 import axios from '../../axiosConfig'
 
 const form = ref({
+  email: '',
   newPassword: '',
   confirmPassword: '',
 })
 
-const route = useRoute()
+const formRef=ref('')
 
+const route = useRoute()
+const router = useRouter()
 const authThemeImg = useGenerateImageVariant(authV2ResetPasswordIllustrationLight, authV2ResetPasswordIllustrationDark)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 const isPasswordVisible = ref(false)
@@ -25,25 +29,34 @@ const token =route.params.token
 
 const handleResetPassword = async () => {
   try {
-    const data= {
-      token: token,
-      password: form.value.newPassword,
-      password_confirmation: form.value.confirmPassword,
-    }
+    const validate=formRef.value?.validate()
+    if(validate.valid){
 
-    console.log(form)
-
-    const response = await axios.post('/reset-password', data)
-
-    if (response.status === 200) {
-      // Redirect to the login page after successful password reset
-      route.push('/login')
+      const data= {
+        token: token,
+        email: form.value.email,
+        password: form.value.newPassword,
+        password_confirmation: form.value.confirmPassword,
+      }
+  
+      console.log(form)
+  
+      const response = await axios.post('/reset-password', data)
+  
+      if (response.status === 200) {
+      
+        router.push('/login')
+      }
     }
   } catch (error) {
-    // Handle any errors that occur during the password reset process
+   
     console.error('Error resetting password:', error)
+    if(error.response.data.data[0]=="passwords.token"){
+      alert('invalid token')
+      router.push('/forgot-password')
+    }
 
-    // Optionally, display an error message to the user
+    
   }
 }
 </script>
@@ -96,14 +109,26 @@ const handleResetPassword = async () => {
         </VCardText>
 
         <VCardText>
-          <VForm @submit.prevent="handleResetPassword">
+          <VForm
+            ref="formRef"
+            @submit.prevent="handleResetPassword"
+          >
             <VRow>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.email"
+                  autofocus
+                  :rules="[requiredValidator, emailValidator]"
+                  label="Email"
+                />
+              </VCol>
               <!-- password -->
               <VCol cols="12">
                 <AppTextField
                   v-model="form.newPassword"
-                  autofocus
+                
                   label="New Password"
+                  :rules="[requiredValidator,passwordValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
@@ -115,6 +140,7 @@ const handleResetPassword = async () => {
                 <AppTextField
                   v-model="form.confirmPassword"
                   label="Confirm Password"
+                  :rules="[requiredValidator,confirmedValidator(form.newPassword,form.confirmPassword)]"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
