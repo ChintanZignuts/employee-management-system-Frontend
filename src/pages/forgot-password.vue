@@ -6,27 +6,34 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { emailValidator, requiredValidator } from "@validators"
+import { toast } from 'vue3-toastify'
 import axios from "../axiosConfig"
 
 const email = ref('')
 const authThemeImg = useGenerateImageVariant(authV2ForgotPasswordIllustrationLight, authV2ForgotPasswordIllustrationDark)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+const formRef=ref('')
 
 const handleForgotPassword = async () => {
   try {
-    const response = await axios.post('/forgot-password', {
-      email: email.value,
-    })
-
-    if (response.status === 200) {
-      alert('Password reset instructions sent to your email!')
-
-    } else {
-      alert('Failed to send password reset instructions. Please try again.')
+    const validate=await formRef.value.validate()
+    if(validate.valid){   
+      const response = await axios.post('/forgot-password', {
+        email: email.value,
+      })
+  
+      if (response.status === 200) {
+        toast.success('Password reset instructions sent to your email!')
+        formRef.reset()
+      } else {
+        toast.error('Failed to send password reset instructions. Please try again.')
+        formRef.reset()
+      }
     }
   } catch (error) {
     console.error('Error:', error)
-    alert('An error occurred. Please try again later.')
+    toast.error("Server Error")
   }
 }
 </script>
@@ -80,12 +87,16 @@ const handleForgotPassword = async () => {
         </VCardText>
 
         <VCardText>
-          <VForm @submit.prevent="handleForgotPassword">
+          <VForm
+            ref="formRef"
+            @submit.prevent="handleForgotPassword"
+          >
             <VRow>
               <!-- email -->
               <VCol cols="12">
                 <AppTextField
                   v-model="email"
+                  :rules="[requiredValidator,emailValidator]"
                   autofocus
                   label="Email"
                   type="email"

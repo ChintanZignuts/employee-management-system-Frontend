@@ -2,6 +2,7 @@
 import avatar1 from '@images/avatars/avatar-1.png'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue3-toastify'
 import axios from '../../axiosConfig'
 
 const router = useRouter()
@@ -26,6 +27,7 @@ const fetchUserData = async () => {
     userData.value = response.data.user
   } catch (error) {
     console.error('Failed to fetch user data:', error.message)
+    toast.error(error.message)
   }
 }
 

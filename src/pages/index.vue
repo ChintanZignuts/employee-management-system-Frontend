@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { toast } from 'vue3-toastify'
 import axios from '../axiosConfig'
-
 
 const userData = ref(null)
 const isLoading = ref(false)
@@ -27,9 +27,10 @@ const fetchData = async () => {
     const response = await axios.get('/stats', config)
 
     userData.value = response.data
-
+    
   } catch (err) {
     error.value = err.message
+    toast.error(error.value)
   } finally {
     isLoading.value = false
   }

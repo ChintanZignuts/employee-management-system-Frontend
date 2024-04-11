@@ -1,5 +1,7 @@
 <script setup>
+import { confirmedValidator, passwordValidator, requiredValidator } from "@validators"
 import { ref } from 'vue'
+import { toast } from 'vue3-toastify'
 import axios from '../axiosConfig'
 
 const form = ref({
@@ -8,6 +10,7 @@ const form = ref({
   confirmPassword: '',
 })
 
+const formRef=ref('')
 const isNewPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
 const isCurrentPasswordVisible = ref(false)
@@ -22,17 +25,22 @@ const handleResetPassword = async () => {
       },
     }
 
-    const response = await axios.post('/change-password', {
-      old_password: form.value.oldPassword,
-      password: form.value.newPassword,
-      password_confirmation: form.value.confirmPassword,
-    }, config)
+    const validate=await formRef.value?.validate()
+    if(validate.valid){
 
-    console.log(response.data) // Log the response or handle success
+      const response = await axios.post('/change-password', {
+        old_password: form.value.oldPassword,
+        password: form.value.newPassword,
+        password_confirmation: form.value.confirmPassword,
+      }, config)
+
+      toast(response.data.message)
+      console.log(response.data) // Log the response or handle success
+    }
 
   } catch (error) {
-    console.error(error.response.data) // Log the error or handle failure
-    // Handle error response, show error message to user, etc.
+    console.error(error.response.data) 
+    toast(error.response.data.message)
   }
 }
 </script>
@@ -41,7 +49,10 @@ const handleResetPassword = async () => {
   <div class="d-flex justify-center">
     <VCol cols="6">
       <VCard title="Change Password">
-        <VForm @submit.prevent="handleResetPassword">
+        <VForm
+          ref="formRef"
+          @submit.prevent="handleResetPassword"
+        >
           <VCardText class="pt-0">
             <VRow>
               <VCol cols="12">
@@ -50,6 +61,7 @@ const handleResetPassword = async () => {
                   v-model="form.oldPassword"
                   :type="isCurrentPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isCurrentPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :rules="[requiredValidator]"
                   label="Current Password"
                   @click:append-inner="isCurrentPasswordVisible = !isCurrentPasswordVisible"
                 />
@@ -63,6 +75,7 @@ const handleResetPassword = async () => {
                 <AppTextField
                   v-model="form.newPassword"
                   :type="isNewPasswordVisible ? 'text' : 'password'"
+                  :rules="[requiredValidator, passwordValidator]"
                   :append-inner-icon="isNewPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   label="New Password"
                   @click:append-inner="isNewPasswordVisible = !isNewPasswordVisible"
@@ -75,6 +88,7 @@ const handleResetPassword = async () => {
                   v-model="form.confirmPassword"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :rules="[requiredValidator, confirmedValidator(form.confirmPassword,form.newPassword)]"
                   label="Confirm New Password"
                   @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 />

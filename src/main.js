@@ -9,6 +9,8 @@ import '@core/scss/template/index.scss'
 import '@styles/styles.scss'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import Vue3Toasity from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 loadFonts()
 
@@ -22,6 +24,14 @@ app.use(vuetify)
 app.use(createPinia())
 app.use(router)
 app.use(layoutsPlugin)
+app.use( Vue3Toasity,
+  {
+    autoClose: 3000,
+    style: {
+      opacity: '1',
+      userSelect: 'initial',
+    },
+  })
 
 // Mount vue app
 app.mount('#app')

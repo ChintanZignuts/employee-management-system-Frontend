@@ -2,6 +2,7 @@
 import { avatarText } from "@/@core/utils/formatters"
 import AddEmployeeDrawer from "@/views/apps/user/list/AddEmployeeDrawer.vue"
 import { onMounted, ref } from "vue"
+import { toast } from 'vue3-toastify'
 import { VDataTable } from "vuetify/labs/VDataTable"
 import axios from "../axiosConfig"
 
@@ -19,7 +20,7 @@ const fetchData = async () => {
   loading.value = true
   try {
     const token = localStorage.getItem("token")
-    const type=localStorage.getItem('type')
+    
 
     const config = {
       headers: {
@@ -27,13 +28,17 @@ const fetchData = async () => {
       },
     }
 
-    
-    const response = await axios.get("/allemployee", config)
+    if(token){
 
-    employeeList.value = response.data.data
-    console.log(employeeList.value)
+      const response = await axios.get("/allemployee", config)
+  
+      employeeList.value = response.data.data
+      console.log(employeeList.value)
+    }
+    
   } catch (error) {
     console.error("Failed to fetch employee data:", error.message)
+    toast.error(error.message)
   }
   loading.value = false
 }
@@ -71,21 +76,26 @@ const deleteItemConfirm = async () => {
       },
     }
 
-    await axios.post(
-      `/employee/delete/${deleteItemId.value}`,
-      { permanent: permentDelete.value },
-      config,
-    )
+    if(token){
 
-    // Remove the deleted employee from the list
-    employeeList.value = employeeList.value.filter(
-      employee => employee.id !== deleteItemId.value,
-    )
+      await axios.post(
+        `/employee/delete/${deleteItemId.value}`,
+        { permanent: permentDelete.value },
+        config,
+      )
+  
+      // Remove the deleted employee from the list
+      employeeList.value = employeeList.value.filter(
+        employee => employee.id !== deleteItemId.value,
+      )
+      closeDelete()
+      toast.success("Employee Deleted")
+    }
 
     // Close the delete dialog
-    closeDelete()
   } catch (error) {
     console.error("Failed to delete employee:", error.message)
+    toast.error(error.message)
   }
 }
 
@@ -116,6 +126,7 @@ const openAddEmployeeDrawer = async employeeId => {
       }
     } catch (error) {
       console.error("Failed to fetch Employee details:", error.message)
+      toast.error("Failed to fetch Employee details")
     }
   } else {
     editEmployeeData.value = null
@@ -144,22 +155,25 @@ const addNewEmployee = async employeeData => {
       )
 
       console.log("Employee updated successfully:", response.data)
+      toast.success("Employee updated successfully")
     } else {
       const response = await axios.post(
         "employee/create",
         employeeData,
         config,
       )
-
+      
       console.log("Employee created successfully:", response.data)
+      toast.success("Employee created successfully")
     }
-
+    
     fetchData()
-
+    
     isAddEmployeeDrawerVisible.value = false
     loading.value = false
   } catch (error) {
     console.error("Failed to update or create Employee:", error.message)
+    toast.error(error.message)
   }
 
   loading.value = false

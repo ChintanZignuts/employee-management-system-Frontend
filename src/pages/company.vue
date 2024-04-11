@@ -2,9 +2,9 @@
 import { avatarText } from '@/@core/utils/formatters'
 import AddNewCompanyDrawer from '@/views/apps/user/list/AddNewCompanyDrawer.vue'
 import { onMounted, ref } from 'vue'
+import { toast } from 'vue3-toastify'
 import { VDataTable } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
-
 
 const deleteDialog = ref(false)
 const isAddNewCompanyDrawerVisible = ref(false)
@@ -120,12 +120,12 @@ const deleteItemConfirm = async () => {
     // Remove the company from the list
     userList.value = userList.value.filter(company => company.id !== deleteItemId.value)
     fetchData()
-
-    // Close the delete dialog
     closeDelete()
+    toast.success("Company Deleted Successfully")
   } catch (error) {
     console.error('Failed to delete company:', error.message)
-  }
+    toast.error(error.message)
+  } 
 }
 
 const fetchData = async () => {
@@ -145,6 +145,7 @@ const fetchData = async () => {
     userList.value = response.data.data
   } catch (error) {
     console.error('Failed to fetch company data:', error.message)
+    toast.error("Failed to fetch company data")
   }
   loading.value=false
 }
@@ -161,29 +162,27 @@ const addNewCompany = async userData => {
       },
     }
 
-    console.log(config)
-    console.log(userData)
     if (isEditMode.value) {
       
       const response = await axios.post(`/companies/update/${editCompanyData.value.id}`, userData, config)
 
      
       console.log('User updated successfully:', response.data)
+      toast.success(response.data.message)
     } else {
-     
+      
       const response = await axios.post('companies/create', userData, config)
 
-    
       console.log('User created successfully:', response.data)
+      toast.success(response.data.message)
     }
 
-   
     fetchData()
-    
    
     isAddNewCompanyDrawerVisible.value = false
   } catch (error) {
     console.error('Failed to update or create user:', error.message)
+    toast.error(error.message)
   }
   loading.value=false
 }

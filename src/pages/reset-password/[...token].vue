@@ -8,6 +8,7 @@ import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { confirmedValidator, emailValidator, passwordValidator, requiredValidator } from "@validators"
 import axios from '../../axiosConfig'
+import { toast } from 'vue3-toastify'
 
 const form = ref({
   email: '',
@@ -44,7 +45,7 @@ const handleResetPassword = async () => {
       const response = await axios.post('/reset-password', data)
   
       if (response.status === 200) {
-      
+        toast.success("password changed successfully")
         router.push('/login')
       }
     }
@@ -52,11 +53,9 @@ const handleResetPassword = async () => {
    
     console.error('Error resetting password:', error)
     if(error.response.data.data[0]=="passwords.token"){
-      alert('invalid token')
+      toast.error('invalid token')
       router.push('/forgot-password')
     }
-
-    
   }
 }
 </script>

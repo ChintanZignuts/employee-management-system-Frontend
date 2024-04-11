@@ -1,6 +1,6 @@
 <script setup>
 import { emailValidator, requiredValidator } from "@validators"
-import { defineProps, onMounted, ref } from "vue"
+import { onMounted, ref } from "vue"
 import { PerfectScrollbar } from "vue3-perfect-scrollbar"
 import axios from "../../../../axiosConfig"
 
@@ -28,7 +28,7 @@ const DOB = ref(null)
 const Salary = ref(null)
 const JoiningDate = ref(null)
 const CompanyId = ref(null)
-const selectedCompany = ref(null)
+
 
 const clearForm = () => {
   refForm.value?.reset()
@@ -81,11 +81,12 @@ const onSubmit = async () => {
         formData.company_id = CompanyId.value
       }
       emit("employeeData", formData)
+      closeNavigationDrawer()
+      nextTick(() => {
+        clearForm()
+        
+      })
     }
-    closeNavigationDrawer()
-    nextTick(() => {
-      clearForm()
-    })
   } catch (error) {
     notify("error", "Failed to submit form")
     console.error("Error:", error.message)

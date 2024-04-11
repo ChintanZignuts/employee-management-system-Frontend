@@ -8,58 +8,35 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { emailValidator, requiredValidator } from "@validators"
 import { useRouter } from 'vue-router'
+import { toast } from 'vue3-toastify'
 import { VForm } from 'vuetify/components/VForm'
 import axios from '../axiosConfig'
 
-const router = useRouter()
 
 
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+
+const router = useRouter()
 const isPasswordVisible = ref(false)
 const refVForm = ref()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 
-const validateEmail = value => {
-  if (!value) {
-    return 'Email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    return 'Email must be valid.'
-  }
-  
-  return true // Validation passed
-}
-
-const validatePassword = value => {
-  if (!value) {
-    return 'Password is required.'
-  }
-  
-  return true // Validation passed
-}
-
-const validationRules = {
-  email: [validateEmail],
-  password: [validatePassword],
-}
-
 const handleSubmit = async () => {
   try {
     const validate=await refVForm.value.validate()
 
-    
-    if (!(validate.valid)) return // If validation fails, do not proceed with API call
+    if (!(validate.valid)) return 
 
-    // Prepare payload for API call
     const payload = {
       email: email.value,
       password: password.value,
     }
 
-    // Make API call using Axios
     const response = await axios.post('/login', payload)
 
 
@@ -68,16 +45,16 @@ const handleSubmit = async () => {
       localStorage.setItem('type', response.data.user.type)
 
       router.push('/')
+      toast.success("Welcome")
     }
     else{
       errorMessage.value = "currently only super admin and company admin login to this page other functionality in progress...🙂  "
     }
-  
 
-    // You can handle further actions based on the response, such as redirecting the user, storing tokens, etc.
   } catch (error) {
     console.error('API call failed:', error)
     errorMessage.value = error.message
+    toast.error(errorMessage.value)
   }
 }
 </script>
@@ -156,7 +133,7 @@ const handleSubmit = async () => {
                     v-model="email"
                     label="Email"
                     type="email"
-                    :rules="validationRules.email"
+                    :rules="[requiredValidator,emailValidator]"
                     autofocus
                     required
                   />
@@ -169,7 +146,7 @@ const handleSubmit = async () => {
                     label="Password"
                     :type="isPasswordVisible ? 'text' : 'password'"
                     :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                    :rules="validationRules.password"
+                    :rules="[requiredValidator]"
                     required
                     @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   />
