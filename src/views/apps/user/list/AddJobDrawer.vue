@@ -1,0 +1,230 @@
+<script setup>
+import { requiredValidator } from "@validators"
+import { onMounted, ref } from "vue"
+import { PerfectScrollbar } from "vue3-perfect-scrollbar"
+import axios from "../../../../axiosConfig"
+
+const props = defineProps({
+  isJobDrawerOpen: {
+    type: Boolean,
+    required: true,
+  },
+  jobData: {
+    type: Object,
+    default: null,
+  },
+})
+
+const emit = defineEmits(["update:isJobDrawerOpen", "jobData"])
+const companyOptions = ref([])
+const isFormValid = ref(false)
+const refForm = ref()
+
+//ref for form data
+const Title= ref("")
+const Description = ref("")
+const Salary = ref("")
+const EmploymentType = ref("")
+const RequiredExperience = ref("")
+const ExpiryDate = ref(null)
+const CompanyId = ref(null)
+
+
+const clearForm = () => {
+  refForm.value?.reset()
+  ExpiryDate.value=""
+  refForm.value?.resetValidation()
+}
+
+const closeNavigationDrawer = () => {
+  emit("update:isJobDrawerOpen", false)
+  clearForm()
+}
+
+watch(
+  () => props.jobData,
+  newValue => {
+    if (newValue) {
+      Title.value = newValue.title
+      Description.value = newValue.description
+      Salary.value = newValue.salary
+      EmploymentType.value = newValue.employment_type
+      RequiredExperience.value = newValue.required_experience
+      ExpiryDate.value = newValue.expiry_date
+      CompanyId.value = newValue.company.id
+    } else {
+      clearForm()
+    }
+  },
+)
+
+const onSubmit = async () => {
+  try {
+    let validate = await refForm.value?.validate()
+    console.log(validate)
+    if (validate.valid) {
+      const formData = {
+        title: Title.value,
+        description: Description.value,
+        salary: Salary.value,
+        employment_type: EmploymentType.value,
+        required_experience: RequiredExperience.value,
+        expiry_date: ExpiryDate.value,
+      }
+
+      if (!props.jobData) {
+        formData.company_id = CompanyId.value
+      }
+      emit("jobData", formData)
+      closeNavigationDrawer()
+      nextTick(() => {
+        clearForm()
+        
+      })
+    }
+  } catch (error) {
+    notify("error", "Failed to submit form")
+    console.error("Error:", error.message)
+  }
+}
+
+const fetchCompanyOptions = async () => {
+
+  try {
+    const token = localStorage.getItem("token")
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    const response = await axios.get("employee/companies/option", config)
+   
+    companyOptions.value = response.data
+    
+   
+    
+  } catch (error) {
+    console.error("Error fetching company options:", error)
+  }
+}
+
+const handleDrawerModelValueUpdate = val => {
+  emit("update:isJobDrawerOpen", val)
+}
+
+onMounted(() => {
+  fetchCompanyOptions()
+})
+</script>
+
+<template>
+  <VNavigationDrawer
+    temporary
+    :width="400"
+    location="end"
+    class="scrollable-content"
+    :model-value="props.isJobDrawerOpen"
+    @update:model-value="handleDrawerModelValueUpdate"
+  >
+    <!-- 👉 Title -->
+    <AppDrawerHeaderSection
+      :title="props.jobData ? 'Edit Job' : 'Add Job'"
+      @cancel="closeNavigationDrawer"
+    />
+
+    <PerfectScrollbar :options="{ wheelPropagation: false }">
+      <VCard flat>
+        <VCardText>
+          <VForm
+            ref="refForm"
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
+          >
+            <VRow>
+              <!-- 👉 Full name -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="Title"
+                  :rules="[requiredValidator]"
+                  label="Title"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextarea
+                  v-model="Description"
+                  clearable
+                  clear-icon="tabler-circle-x"
+                  :rules="[requiredValidator]"
+                  label="Description"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppAutocomplete
+                  v-model="EmploymentType"
+                  label="Employment Type"
+                  :items="EmploymentOptions"
+                  item-title="name"
+                  item-value="id"
+                  :rules="[requiredValidator]"
+                  :disabled="props.jobData !== null"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="Salary"
+                  label="Salary"
+                  type="number"
+                />
+              </VCol>
+              <!-- 👉 Required Experience -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="RequiredExperience"
+                  :rules="[requiredValidator]"
+                  label="Required Experience"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppDateTimePicker
+                  v-model="ExpiryDate"
+                  placeholder="YYYY-MM-DD"
+                  :config="{ dateFormat: 'Y-m-d', minDate: new Date() }"
+                  label="Expiry Date"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppAutocomplete
+                  v-model="CompanyId"
+                  label="Company"
+                  :items="companyOptions"
+                  item-title="name"
+                  item-value="id"
+                  :rules="[requiredValidator]"
+                  :disabled="props.jobData !== null"
+                />
+              </VCol>
+              <!-- 👉 Submit and Cancel -->
+              <VCol cols="12">
+                <VBtn
+                  type="submit"
+                  class="me-3"
+                >
+                  Submit
+                </VBtn>
+                <VBtn
+                  variant="tonal"
+                  color="secondary"
+                  @click="closeNavigationDrawer"
+                >
+                  Cancel
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </VCard>
+    </PerfectScrollbar>
+  </VNavigationDrawer>
+</template>
