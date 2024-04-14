@@ -4,6 +4,83 @@ import { onMounted, ref } from "vue";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import axios from "../../../../axiosConfig";
 
+const friends = ref(["Sandra Adams", "Britta Holt"]);
+
+const skills = [
+  {
+    skill: "JavaScript",
+  },
+  {
+    skill: "HTML",
+  },
+  {
+    skill: "CSS",
+  },
+  {
+    skill: "Python",
+  },
+  {
+    skill: "Data Analysis",
+  },
+  {
+    skill: "Machine Learning",
+  },
+  {
+    skill: "Java",
+  },
+  {
+    skill: "Spring Framework",
+  },
+  {
+    skill: "SQL",
+  },
+  {
+    skill: "C++",
+  },
+  {
+    skill: "Algorithm Design",
+  },
+  {
+    skill: "Object-Oriented Programming",
+  },
+  {
+    skill: "Network Administration",
+  },
+  {
+    skill: "Cybersecurity",
+  },
+  {
+    skill: "Firewalls",
+  },
+  {
+    skill: "React",
+  },
+  {
+    skill: "Node.js",
+  },
+  {
+    skill: "MongoDB",
+  },
+  {
+    skill: "AWS",
+  },
+  {
+    skill: "DevOps",
+  },
+  {
+    skill: "Continuous Integration/Continuous Deployment",
+  },
+  {
+    skill: "Linux/Unix",
+  },
+  {
+    skill: "Shell Scripting",
+  },
+  {
+    skill: "System Administration",
+  },
+];
+
 const props = defineProps({
   isJobDrawerOpen: {
     type: Boolean,
@@ -26,6 +103,7 @@ const Description = ref("");
 const Salary = ref("");
 const EmploymentType = ref("");
 const RequiredExperience = ref([0, 1]);
+const RequiredSkills = ref([]);
 const ExpiryDate = ref(null);
 const CompanyId = ref(null);
 
@@ -49,6 +127,7 @@ watch(
       Salary.value = newValue.salary;
       EmploymentType.value = newValue.employment_type;
       RequiredExperience.value = newValue.required_experience;
+      RequiredSkills.value = newValue.required_skills;
       ExpiryDate.value = newValue.expiry_date;
       CompanyId.value = newValue.company.id;
     } else {
@@ -83,6 +162,7 @@ const onSubmit = async () => {
         salary: Salary.value,
         employment_type: EmploymentType.value,
         required_experience: RequiredExperience.value,
+        required_skills: RequiredSkills.value,
         expiry_date: ExpiryDate.value,
       };
 
@@ -178,6 +258,26 @@ onMounted(() => {
               </VCol>
               <VCol cols="12">
                 <AppTextField v-model="Salary" label="Salary" type="number" />
+              </VCol>
+              <VCol cols="12">
+                <AppAutocomplete
+                  v-model="RequiredSkills"
+                  chips
+                  closable-chips
+                  multiple
+                  :items="skills"
+                  item-title="skill"
+                  item-value="skill"
+                  label="Select"
+                >
+                  <template #chip="{ props, item }">
+                    <VChip v-bind="props" :text="item.raw.skill" />
+                  </template>
+
+                  <template #item="{ props, item }">
+                    <VListItem v-bind="props" :title="item?.raw?.skill" />
+                  </template>
+                </AppAutocomplete>
               </VCol>
               <!-- 👉 Required Experience -->
               <VCol cols="12">

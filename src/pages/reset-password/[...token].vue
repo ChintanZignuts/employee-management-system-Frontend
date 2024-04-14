@@ -1,74 +1,72 @@
 <script setup>
-import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import authV2ResetPasswordIllustrationDark from '@images/pages/auth-v2-reset-password-illustration-dark.png'
-import authV2ResetPasswordIllustrationLight from '@images/pages/auth-v2-reset-password-illustration-light.png'
-import authV2MaskDark from '@images/pages/misc-mask-dark.png'
-import authV2MaskLight from '@images/pages/misc-mask-light.png'
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
-import { themeConfig } from '@themeConfig'
-import { confirmedValidator, emailValidator, passwordValidator, requiredValidator } from "@validators"
-import axios from '../../axiosConfig'
-import { toast } from 'vue3-toastify'
+import { useGenerateImageVariant } from "@core/composable/useGenerateImageVariant";
+import authV2ResetPasswordIllustrationDark from "@images/pages/auth-v2-reset-password-illustration-dark.png";
+import authV2ResetPasswordIllustrationLight from "@images/pages/auth-v2-reset-password-illustration-light.png";
+import authV2MaskDark from "@images/pages/misc-mask-dark.png";
+import authV2MaskLight from "@images/pages/misc-mask-light.png";
+import { VNodeRenderer } from "@layouts/components/VNodeRenderer";
+import { themeConfig } from "@themeConfig";
+import {
+  confirmedValidator,
+  passwordValidator,
+  requiredValidator,
+} from "@validators";
+import axios from "../../axiosConfig";
+import { toast } from "vue3-toastify";
 
 const form = ref({
-  email: '',
-  newPassword: '',
-  confirmPassword: '',
-})
+  newPassword: "",
+  confirmPassword: "",
+});
 
-const formRef=ref('')
+const formRef = ref("");
 
-const route = useRoute()
-const router = useRouter()
-const authThemeImg = useGenerateImageVariant(authV2ResetPasswordIllustrationLight, authV2ResetPasswordIllustrationDark)
-const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
-const isPasswordVisible = ref(false)
-const isConfirmPasswordVisible = ref(false)
-const token =route.params.token
-
-
+const route = useRoute();
+const router = useRouter();
+const authThemeImg = useGenerateImageVariant(
+  authV2ResetPasswordIllustrationLight,
+  authV2ResetPasswordIllustrationDark
+);
+const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark);
+const isPasswordVisible = ref(false);
+const isConfirmPasswordVisible = ref(false);
+const token = route.params.token;
 
 const handleResetPassword = async () => {
   try {
-    const validate=formRef.value?.validate()
-    if(validate.valid){
-
-      const data= {
+    console.log("hii");
+    const validate = await formRef.value?.validate();
+    console.log(validate.valid);
+    if (validate.valid) {
+      const data = {
         token: token,
-        email: form.value.email,
         password: form.value.newPassword,
         password_confirmation: form.value.confirmPassword,
-      }
-  
-      console.log(form)
-  
-      const response = await axios.post('/reset-password', data)
-  
+      };
+
+      console.log(form);
+
+      const response = await axios.post("/reset-password", data);
+
       if (response.status === 200) {
-        toast.success("password changed successfully")
-        router.push('/login')
+        toast.success("password changed successfully");
+        router.push("/login");
       }
     }
   } catch (error) {
-   
-    console.error('Error resetting password:', error)
-    if(error.response.data.data[0]=="passwords.token"){
-      toast.error('invalid token')
-      router.push('/forgot-password')
+    console.error("Error resetting password:", error);
+    console.log(error.response.data.status);
+    if (error.response.data.status == 401) {
+      toast.error("invalid token");
+      router.push("/forgot-password");
     }
   }
-}
+};
 </script>
 
 <template>
-  <VRow
-    no-gutters
-    class="auth-wrapper bg-surface"
-  >
-    <VCol
-      md="8"
-      class="d-none d-md-flex"
-    >
+  <VRow no-gutters class="auth-wrapper bg-surface">
+    <VCol md="8" class="d-none d-md-flex">
       <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
         <div class="d-flex align-center justify-center w-100 h-100">
           <VImg
@@ -78,10 +76,7 @@ const handleResetPassword = async () => {
           />
         </div>
 
-        <VImg
-          class="auth-footer-mask"
-          :src="authThemeMask"
-        />
+        <VImg class="auth-footer-mask" :src="authThemeMask" />
       </div>
     </VCol>
 
@@ -90,46 +85,27 @@ const handleResetPassword = async () => {
       md="4"
       class="auth-card-v2 d-flex align-center justify-center"
     >
-      <VCard
-        flat
-        :max-width="500"
-        class="mt-12 mt-sm-0 pa-4"
-      >
+      <VCard flat :max-width="500" class="mt-12 mt-sm-0 pa-4">
         <VCardText>
-          <VNodeRenderer
-            :nodes="themeConfig.app.logo"
-            class="mb-6"
-          />
+          <VNodeRenderer :nodes="themeConfig.app.logo" class="mb-6" />
 
-          <h5 class="text-h5 mb-1">
-            Reset Password 🔒
-          </h5>
+          <h5 class="text-h5 mb-1">Reset Password 🔒</h5>
           {{ form.newPassword }}
         </VCardText>
 
         <VCardText>
-          <VForm
-            ref="formRef"
-            @submit.prevent="handleResetPassword"
-          >
+          <VForm ref="formRef" @submit.prevent="handleResetPassword">
             <VRow>
-              <VCol cols="12">
-                <AppTextField
-                  v-model="form.email"
-                  autofocus
-                  :rules="[requiredValidator, emailValidator]"
-                  label="Email"
-                />
-              </VCol>
               <!-- password -->
               <VCol cols="12">
                 <AppTextField
                   v-model="form.newPassword"
-                
                   label="New Password"
-                  :rules="[requiredValidator,passwordValidator]"
+                  :rules="[requiredValidator, passwordValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :append-inner-icon="
+                    isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'
+                  "
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
               </VCol>
@@ -139,21 +115,23 @@ const handleResetPassword = async () => {
                 <AppTextField
                   v-model="form.confirmPassword"
                   label="Confirm Password"
-                  :rules="[requiredValidator,confirmedValidator(form.newPassword,form.confirmPassword)]"
+                  :rules="[
+                    requiredValidator,
+                    confirmedValidator(form.newPassword, form.confirmPassword),
+                  ]"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                  :append-inner-icon="
+                    isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'
+                  "
+                  @click:append-inner="
+                    isConfirmPasswordVisible = !isConfirmPasswordVisible
+                  "
                 />
               </VCol>
 
               <!-- Set password -->
               <VCol cols="12">
-                <VBtn
-                  block
-                  type="submit"
-                >
-                  Set New Password
-                </VBtn>
+                <VBtn block type="submit"> Set New Password </VBtn>
               </VCol>
 
               <!-- back to login -->
@@ -162,10 +140,7 @@ const handleResetPassword = async () => {
                   class="d-flex align-center justify-center"
                   to="/login"
                 >
-                  <VIcon
-                    icon="tabler-chevron-left"
-                    class="flip-in-rtl"
-                  />
+                  <VIcon icon="tabler-chevron-left" class="flip-in-rtl" />
                   <span>Back to login</span>
                 </RouterLink>
               </VCol>
