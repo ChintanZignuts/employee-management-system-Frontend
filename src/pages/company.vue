@@ -1,213 +1,208 @@
 <script setup>
-import { avatarText } from '@/@core/utils/formatters'
-import AddNewCompanyDrawer from '@/views/apps/user/list/AddNewCompanyDrawer.vue'
-import { onMounted, ref } from 'vue'
-import { toast } from 'vue3-toastify'
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
-import axios from '../axiosConfig'
-import { companyHeaders } from '../utils/dataTableHeaders'
+import { avatarText } from "@/@core/utils/formatters";
+import AddNewCompanyDrawer from "@/views/apps/user/list/AddNewCompanyDrawer.vue";
+import { onMounted, ref } from "vue";
+import { toast } from "vue3-toastify";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import axios from "../axiosConfig";
+import { companyHeaders } from "../utils/dataTableHeaders";
 
+const deleteDialog = ref(false);
+const isAddNewCompanyDrawerVisible = ref(false);
+const editCompanyData = ref(null);
+const isEditMode = ref(false);
+const deleteItemId = ref(null);
+const userList = ref([]);
+const permentDelete = ref(false);
+const loading = ref(false);
+const pagination = ref(null);
+const itemPerPage = ref(1);
+const totalPage = ref(0);
 
-const deleteDialog = ref(false)
-const isAddNewCompanyDrawerVisible = ref(false)
-const editCompanyData = ref(null)
-const isEditMode = ref(false)
-const deleteItemId = ref(null)
-const userList = ref([])
-const permentDelete=ref(false)
-const loading=ref(false)
-const pagination = ref(null)
-
-const resolveStatusVariant = status => {
+const resolveStatusVariant = (status) => {
   if (status === "A")
     return {
-      color: 'success',
-      text: 'Active',
-    }
+      color: "success",
+      text: "Active",
+    };
   else if (status === "I")
     return {
-      color: 'primary',
-      text: 'Inactive',
-    }
+      color: "primary",
+      text: "Inactive",
+    };
   else
     return {
-      color: 'info',
-      text: 'No status',
-    }
-}
+      color: "info",
+      text: "No status",
+    };
+};
 
-const openAddNewCompanyDrawer =async companyData => {
+const openAddNewCompanyDrawer = async (companyData) => {
   if (companyData) {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem("token");
 
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`, 
-          'content-type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+          "content-type": "multipart/form-data",
         },
+      };
+
+      const response = await axios.get(`/companies/${companyData.id}`, config);
+
+      editCompanyData.value = response.data.data;
+      if (editCompanyData.value) {
+        isEditMode.value = true;
+        isAddNewCompanyDrawerVisible.value = true;
       }
-
-      const response = await axios.get(`/companies/${companyData.id}`, config)
-
-      
-      editCompanyData.value = response.data.data
-      if(editCompanyData.value){
-
-        isEditMode.value = true
-        isAddNewCompanyDrawerVisible.value = true
-      }
-      
     } catch (error) {
-      console.error('Failed to fetch company details:', error.message)
-      toast("Failed to fetch company details")
+      console.error("Failed to fetch company details:", error.message);
+      toast("Failed to fetch company details");
     }
   } else {
-    
-    editCompanyData.value = null
-    isEditMode.value = false
-    isAddNewCompanyDrawerVisible.value = true
+    editCompanyData.value = null;
+    isEditMode.value = false;
+    isAddNewCompanyDrawerVisible.value = true;
   }
-}
+};
 
-const deleteItem = item => {
- 
-  deleteItemId.value=item
-  deleteDialog.value = true
-}
+const deleteItem = (item) => {
+  deleteItemId.value = item;
+  deleteDialog.value = true;
+};
 
 const closeDelete = () => {
-  deleteDialog.value = false
- 
-}
+  deleteDialog.value = false;
+};
 
-
-
-const fetchData = async (page = 1) => {
-  loading.value=true
+const fetchData = async (page = 1, search = "", perPage = 1) => {
+  loading.value = true;
   try {
-
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+      params: {
+        page: page,
+        search: search,
+        per_page: perPage,
+      },
+    };
 
-    const response = await axios.get(`/companies?page=${page}`, config)
+    const response = await axios.get(`/companies`, config);
 
-    userList.value = response.data.data.data
-    pagination.value = response.data.data
+    userList.value = response.data.data.data;
+    pagination.value = response.data.data;
+    totalPage.value = pagination.value.total;
+    itemPerPage.value = pagination.value.per_page;
     console.log(pagination.value.total);
   } catch (error) {
-    console.error('Failed to fetch company data:', error.message)
-    toast.error("Failed to fetch company data")
+    console.error("Failed to fetch company data:", error.message);
+    toast.error("Failed to fetch company data");
   }
-  loading.value=false
-}
+  loading.value = false;
+};
 
 const deleteItemConfirm = async () => {
   try {
-   
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    };
 
-    await axios.post(`/companies/delete/${deleteItemId.value}`, { forceDelete: permentDelete.value }, config)
+    await axios.post(
+      `/companies/delete/${deleteItemId.value}`,
+      { forceDelete: permentDelete.value },
+      config
+    );
 
     // Remove the company from the list
-    userList.value = userList.value.filter(company => company.id !== deleteItemId.value)
-    fetchData()
-    closeDelete()
-    toast.success("Company Deleted Successfully")
+    userList.value = userList.value.filter(
+      (company) => company.id !== deleteItemId.value
+    );
+    fetchData();
+    closeDelete();
+    toast.success("Company Deleted Successfully");
   } catch (error) {
-    console.error('Failed to delete company:', error)
-    toast.error(error.response.data.message)
-  } 
-}
+    console.error("Failed to delete company:", error);
+    toast.error(error.response.data.message);
+  }
+};
 
-const handlePagination = (page) => {
-  fetchData(page)
-}
+const handlePagination = async (page) => {
+  console.log("Page:", page);
+  await fetchData(page);
+};
 
-const addNewCompany = async userData => {
-  loading.value=true
+const addNewCompany = async (userData) => {
+  loading.value = true;
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
-    }
+    };
 
     if (isEditMode.value) {
-      
-      const response = await axios.post(`/companies/update/${editCompanyData.value.id}`, userData, config)
+      const response = await axios.post(
+        `/companies/update/${editCompanyData.value.id}`,
+        userData,
+        config
+      );
 
-     
-      console.log('User updated successfully:', response.data)
-      toast.success(response.data.message)
+      console.log("User updated successfully:", response.data);
+      toast.success(response.data.message);
     } else {
-      
-      const response = await axios.post('companies/create', userData, config)
+      const response = await axios.post("companies/create", userData, config);
 
-      console.log('User created successfully:', response.data)
-      toast.success(response.data.message)
+      console.log("User created successfully:", response.data);
+      toast.success(response.data.message);
     }
 
-    fetchData()
-   
-    isAddNewCompanyDrawerVisible.value = false
+    await fetchData();
+
+    isAddNewCompanyDrawerVisible.value = false;
   } catch (error) {
-    console.error('Failed to update or create user:', error.message)
-    toast.error(error.message)
+    console.error("Failed to update or create user:", error.message);
+    toast.error(error.message);
   }
-  loading.value=false
-}
+  loading.value = false;
+};
 
-
-onMounted(() => {
-  fetchData()
-})
+onMounted(async () => {
+  await fetchData();
+});
 </script>
 
 <template>
   <div>
     <!-- loading-->
-    <div
-      v-if="loading"
-      class="d-flex justify-center"
-    >
-      <VProgressCircular
-        :size="40"
-        color="primary"
-        indeterminate
-      />
+    <div v-if="loading" class="d-flex justify-center">
+      <VProgressCircular :size="40" color="primary" indeterminate />
     </div>
     <!-- 👉 Add user button -->
     <div v-else-if="pagination !== null">
       <div class="d-flex justify-end ma-3">
-        <VBtn
-          prepend-icon="tabler-plus"
-          @click="openAddNewCompanyDrawer(null)"
-        >
+        <VBtn prepend-icon="tabler-plus" @click="openAddNewCompanyDrawer(null)">
           Add New Company
         </VBtn>
       </div>
       <VDataTableServer
+        v-model:items-per-page="itemPerPage"
         :headers="companyHeaders"
         :items="userList"
-        v-model:items-per-page="pagination.per_page"
-        :items-length="pagination.total"
-        :server-items-length="true"
+        :items-length="totalPage"
         :loading="loading"
+        item.value="item"
         @update:page="handlePagination"
       >
         <!-- Name column -->
@@ -226,10 +221,13 @@ onMounted(() => {
               />
               <span v-else>{{ avatarText(item.raw.name) }}</span>
             </VAvatar>
-          
+
             <!-- Name and location -->
             <div class="d-flex flex-column ms-3">
-              <span class="d-block font-weight-medium text--primary text-truncate">{{ item.raw.name }}</span>
+              <span
+                class="d-block font-weight-medium text--primary text-truncate"
+                >{{ item.raw.name }}</span
+              >
               <small>{{ item.raw.location }}</small>
             </div>
           </div>
@@ -242,11 +240,9 @@ onMounted(() => {
 
         <!-- Website column -->
         <template #item.website="{ item }">
-          <a
-            :href="item.raw.website"
-            target="_blank"
-            rel="noopener noreferrer"
-          ><span>{{ item.raw.name }}</span></a>
+          <a :href="item.raw.website" target="_blank" rel="noopener noreferrer"
+            ><span>{{ item.raw.name }}</span></a
+          >
         </template>
 
         <!-- Status column -->
@@ -274,14 +270,9 @@ onMounted(() => {
         </template>
       </VDataTableServer>
     </div>
-    <VDialog
-      v-model="deleteDialog"
-      max-width="500px"
-    >
+    <VDialog v-model="deleteDialog" max-width="500px">
       <VCard>
-        <VCardTitle>
-          Are you sure you want to delete this item?
-        </VCardTitle>
+        <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
         <div class="demo-space-x">
           <VCheckbox
             v-model="permentDelete"
@@ -290,18 +281,10 @@ onMounted(() => {
         </div>
         <VCardActions>
           <VSpacer />
-          <VBtn
-            color="error"
-            variant="outlined"
-            @click="closeDelete"
-          >
+          <VBtn color="error" variant="outlined" @click="closeDelete">
             Cancel
           </VBtn>
-          <VBtn
-            color="success"
-            variant="elevated"
-            @click="deleteItemConfirm"
-          >
+          <VBtn color="success" variant="elevated" @click="deleteItemConfirm">
             OK
           </VBtn>
           <VSpacer />
