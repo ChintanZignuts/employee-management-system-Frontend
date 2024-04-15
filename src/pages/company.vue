@@ -3,8 +3,10 @@ import { avatarText } from '@/@core/utils/formatters'
 import AddNewCompanyDrawer from '@/views/apps/user/list/AddNewCompanyDrawer.vue'
 import { onMounted, ref } from 'vue'
 import { toast } from 'vue3-toastify'
-import { VDataTable } from 'vuetify/labs/VDataTable'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import axios from '../axiosConfig'
+import { companyHeaders } from '../utils/dataTableHeaders'
+
 
 const deleteDialog = ref(false)
 const isAddNewCompanyDrawerVisible = ref(false)
@@ -14,30 +16,7 @@ const deleteItemId = ref(null)
 const userList = ref([])
 const permentDelete=ref(false)
 const loading=ref(false)
-
-// headers
-const headers = [
-  {
-    title: 'Name',
-    key: 'name',
-  },
-  {
-    title: 'Email',
-    key: 'company_email',
-  },
-  {
-    title: 'Website',
-    key: 'website',
-  },
-  {
-    title: 'Status',
-    key: 'status',
-  },
-  {
-    title: 'ACTIONS',
-    key: 'actions',
-  },
-]
+const pagination = ref(null)
 
 const resolveStatusVariant = status => {
   if (status === "A")
@@ -47,7 +26,6 @@ const resolveStatusVariant = status => {
     }
   else if (status === "I")
     return {
-
       color: 'primary',
       text: 'Inactive',
     }
@@ -82,8 +60,7 @@ const openAddNewCompanyDrawer =async companyData => {
       
     } catch (error) {
       console.error('Failed to fetch company details:', error.message)
-
-      // Handle error appropriately, e.g., show error message
+      toast("Failed to fetch company details")
     }
   } else {
     
@@ -102,6 +79,32 @@ const deleteItem = item => {
 const closeDelete = () => {
   deleteDialog.value = false
  
+}
+
+
+
+const fetchData = async (page = 1) => {
+  loading.value=true
+  try {
+
+    const token = localStorage.getItem('token')
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+
+    const response = await axios.get(`/companies?page=${page}`, config)
+
+    userList.value = response.data.data.data
+    pagination.value = response.data.data
+    console.log(pagination.value.total);
+  } catch (error) {
+    console.error('Failed to fetch company data:', error.message)
+    toast.error("Failed to fetch company data")
+  }
+  loading.value=false
 }
 
 const deleteItemConfirm = async () => {
@@ -123,31 +126,13 @@ const deleteItemConfirm = async () => {
     closeDelete()
     toast.success("Company Deleted Successfully")
   } catch (error) {
-    console.error('Failed to delete company:', error.message)
-    toast.error(error.message)
+    console.error('Failed to delete company:', error)
+    toast.error(error.response.data.message)
   } 
 }
 
-const fetchData = async () => {
-  loading.value=true
-  try {
-
-    const token = localStorage.getItem('token')
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-
-    const response = await axios.get('/companies', config)
-
-    userList.value = response.data.data
-  } catch (error) {
-    console.error('Failed to fetch company data:', error.message)
-    toast.error("Failed to fetch company data")
-  }
-  loading.value=false
+const handlePagination = (page) => {
+  fetchData(page)
 }
 
 const addNewCompany = async userData => {
@@ -195,7 +180,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- <Snackbar /> -->
+    <!-- loading-->
     <div
       v-if="loading"
       class="d-flex justify-center"
@@ -207,7 +192,7 @@ onMounted(() => {
       />
     </div>
     <!-- 👉 Add user button -->
-    <div v-else>
+    <div v-else-if="pagination !== null">
       <div class="d-flex justify-end ma-3">
         <VBtn
           prepend-icon="tabler-plus"
@@ -216,10 +201,14 @@ onMounted(() => {
           Add New Company
         </VBtn>
       </div>
-      <VDataTable
-        :headers="headers"
+      <VDataTableServer
+        :headers="companyHeaders"
         :items="userList"
-        :items-per-page="10"
+        v-model:items-per-page="pagination.per_page"
+        :items-length="pagination.total"
+        :server-items-length="true"
+        :loading="loading"
+        @update:page="handlePagination"
       >
         <!-- Name column -->
         <template #item.name="{ item }">
@@ -283,7 +272,7 @@ onMounted(() => {
             </IconBtn>
           </div>
         </template>
-      </VDataTable>
+      </VDataTableServer>
     </div>
     <VDialog
       v-model="deleteDialog"

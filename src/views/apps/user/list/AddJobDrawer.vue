@@ -1,86 +1,9 @@
 <script setup>
-import { requiredValidator } from "@validators";
-import { onMounted, ref } from "vue";
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
-import axios from "../../../../axiosConfig";
-
-const friends = ref(["Sandra Adams", "Britta Holt"]);
-
-const skills = [
-  {
-    skill: "JavaScript",
-  },
-  {
-    skill: "HTML",
-  },
-  {
-    skill: "CSS",
-  },
-  {
-    skill: "Python",
-  },
-  {
-    skill: "Data Analysis",
-  },
-  {
-    skill: "Machine Learning",
-  },
-  {
-    skill: "Java",
-  },
-  {
-    skill: "Spring Framework",
-  },
-  {
-    skill: "SQL",
-  },
-  {
-    skill: "C++",
-  },
-  {
-    skill: "Algorithm Design",
-  },
-  {
-    skill: "Object-Oriented Programming",
-  },
-  {
-    skill: "Network Administration",
-  },
-  {
-    skill: "Cybersecurity",
-  },
-  {
-    skill: "Firewalls",
-  },
-  {
-    skill: "React",
-  },
-  {
-    skill: "Node.js",
-  },
-  {
-    skill: "MongoDB",
-  },
-  {
-    skill: "AWS",
-  },
-  {
-    skill: "DevOps",
-  },
-  {
-    skill: "Continuous Integration/Continuous Deployment",
-  },
-  {
-    skill: "Linux/Unix",
-  },
-  {
-    skill: "Shell Scripting",
-  },
-  {
-    skill: "System Administration",
-  },
-];
-
+import { requiredValidator } from "@validators"
+import { onMounted, ref } from "vue"
+import { PerfectScrollbar } from "vue3-perfect-scrollbar"
+import axios from "../../../../axiosConfig"
+import { skills } from '../../../../utils/requiredSkills'
 const props = defineProps({
   isJobDrawerOpen: {
     type: Boolean,
@@ -90,51 +13,57 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-});
+})
 
-const emit = defineEmits(["update:isJobDrawerOpen", "jobData"]);
-const companyOptions = ref([]);
-const isFormValid = ref(false);
-const refForm = ref();
+const emit = defineEmits(["update:isJobDrawerOpen", "jobData"])
+
+const friends = ref(["Sandra Adams", "Britta Holt"])
+
+
+
+const companyOptions = ref([])
+const isFormValid = ref(false)
+const refForm = ref()
 
 //ref for form data
-const Title = ref("");
-const Description = ref("");
-const Salary = ref("");
-const EmploymentType = ref("");
-const RequiredExperience = ref([0, 1]);
-const RequiredSkills = ref([]);
-const ExpiryDate = ref(null);
-const CompanyId = ref(null);
+const Title = ref("")
+const Description = ref("")
+const Salary = ref("")
+const EmploymentType = ref("")
+const RequiredExperience = ref([0, 0])
+const RequiredSkills = ref([])
+const ExpiryDate = ref(null)
+const CompanyId = ref(null)
 
 const clearForm = () => {
-  refForm.value?.reset();
-  ExpiryDate.value = "";
-  refForm.value?.resetValidation();
-};
+  refForm.value?.reset()
+  ExpiryDate.value = ""
+  RequiredExperience.value=[0,0]
+  refForm.value?.resetValidation()
+}
 
 const closeNavigationDrawer = () => {
-  emit("update:isJobDrawerOpen", false);
-  clearForm();
-};
+  emit("update:isJobDrawerOpen", false)
+  clearForm()
+}
 
 watch(
   () => props.jobData,
-  (newValue) => {
+  newValue => {
     if (newValue) {
-      Title.value = newValue.title;
-      Description.value = newValue.description;
-      Salary.value = newValue.salary;
-      EmploymentType.value = newValue.employment_type;
-      RequiredExperience.value = newValue.required_experience;
-      RequiredSkills.value = newValue.required_skills;
-      ExpiryDate.value = newValue.expiry_date;
-      CompanyId.value = newValue.company.id;
+      Title.value = newValue.title
+      Description.value = newValue.description
+      Salary.value = newValue.salary
+      EmploymentType.value = newValue.employment_type
+      RequiredExperience.value = newValue.required_experience
+      RequiredSkills.value = newValue.required_skills
+      ExpiryDate.value = newValue.expiry_date
+      CompanyId.value = newValue.company.id
     } else {
-      clearForm();
+      clearForm()
     }
-  }
-);
+  },
+)
 
 const EmploymentOptions = [
   { title: "Full-time" },
@@ -143,18 +72,19 @@ const EmploymentOptions = [
   { title: "Freelance" },
   { title: "Internship" },
   { title: "Remote" },
-];
+]
 
-const formatExperience = (value) => {
-  const start = value[0];
-  const end = value[1];
-  return `${start} years to ${end} years`;
-};
+const formatExperience = value => {
+  const start = value[0]
+  const end = value[1]
+  
+  return `${start} years to ${end} years`
+}
 
 const onSubmit = async () => {
   try {
-    let validate = await refForm.value?.validate();
-    console.log(validate);
+    let validate = await refForm.value?.validate()
+
     if (validate.valid) {
       const formData = {
         title: Title.value,
@@ -164,48 +94,48 @@ const onSubmit = async () => {
         required_experience: RequiredExperience.value,
         required_skills: RequiredSkills.value,
         expiry_date: ExpiryDate.value,
-      };
+      }
 
       if (!props.jobData) {
-        formData.company_id = CompanyId.value;
+        formData.company_id = CompanyId.value
       }
-      emit("jobData", formData);
-      closeNavigationDrawer();
+      emit("jobData", formData)
+      closeNavigationDrawer()
       nextTick(() => {
-        clearForm();
-      });
+        clearForm()
+      })
     }
   } catch (error) {
-    notify("error", "Failed to submit form");
-    console.error("Error:", error.message);
+    notify("error", "Failed to submit form")
+    console.error("Error:", error.message)
   }
-};
+}
 
 const fetchCompanyOptions = async () => {
   try {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    };
+    }
 
-    const response = await axios.get("employee/companies/option", config);
+    const response = await axios.get("employee/companies/option", config)
 
-    companyOptions.value = response.data;
+    companyOptions.value = response.data
   } catch (error) {
-    console.error("Error fetching company options:", error);
+    console.error("Error fetching company options:", error)
   }
-};
+}
 
-const handleDrawerModelValueUpdate = (val) => {
-  emit("update:isJobDrawerOpen", val);
-};
+const handleDrawerModelValueUpdate = val => {
+  emit("update:isJobDrawerOpen", val)
+}
 
 onMounted(() => {
-  fetchCompanyOptions();
-});
+  fetchCompanyOptions()
+})
 </script>
 
 <template>
@@ -226,7 +156,11 @@ onMounted(() => {
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm
+            ref="refForm"
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
+          >
             <VRow>
               <!-- 👉 Full name -->
               <VCol cols="12">
@@ -257,7 +191,11 @@ onMounted(() => {
                 />
               </VCol>
               <VCol cols="12">
-                <AppTextField v-model="Salary" label="Salary" type="number" />
+                <AppTextField
+                  v-model="Salary"
+                  label="Salary"
+                  type="number"
+                />
               </VCol>
               <VCol cols="12">
                 <AppAutocomplete
@@ -270,12 +208,18 @@ onMounted(() => {
                   item-value="skill"
                   label="Select"
                 >
-                  <template #chip="{ props, item }">
-                    <VChip v-bind="props" :text="item.raw.skill" />
+                  <template #chip="{props, item }">
+                    <VChip
+                      v-bind="props"
+                      :text="item.raw.skill"
+                    />
                   </template>
 
-                  <template #item="{ props, item }">
-                    <VListItem v-bind="props" :title="item?.raw?.skill" />
+                  <template #item="{props, item }">
+                    <VListItem
+                      v-bind="props"
+                      :title="item?.raw?.skill"
+                    />
                   </template>
                 </AppAutocomplete>
               </VCol>
@@ -294,7 +238,7 @@ onMounted(() => {
                 <AppDateTimePicker
                   v-model="ExpiryDate"
                   placeholder="YYYY-MM-DD"
-                  :config="{ dateFormat: 'Y-m-d', minDate: new Date() }"
+                  :config="{ dateFormat: 'Y-m-d', minDate: new Date()-1 }"
                   label="Expiry Date"
                 />
               </VCol>
@@ -311,7 +255,12 @@ onMounted(() => {
               </VCol>
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
-                <VBtn type="submit" class="me-3"> Submit </VBtn>
+                <VBtn
+                  type="submit"
+                  class="me-3"
+                >
+                  Submit
+                </VBtn>
                 <VBtn
                   variant="tonal"
                   color="secondary"

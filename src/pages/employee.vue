@@ -5,6 +5,7 @@ import { onMounted, ref } from "vue"
 import { toast } from 'vue3-toastify'
 import { VDataTable } from "vuetify/labs/VDataTable"
 import axios from "../axiosConfig"
+import { employeeHeaders } from "../utils/dataTableHeaders"
 
 const deleteDialog = ref(false)
 const isAddEmployeeDrawerVisible = ref(false)
@@ -33,7 +34,6 @@ const fetchData = async () => {
       const response = await axios.get("/allemployee", config)
   
       employeeList.value = response.data.data
-      console.log(employeeList.value)
     }
     
   } catch (error) {
@@ -43,15 +43,7 @@ const fetchData = async () => {
   loading.value = false
 }
 
-const headers = [
-  { title: "First Name", key: "first_name" },
-  { title: "Last Name", key: "last_name" },
-  { title: "Email", key: "email" },
-  { title: "Type", key: "type" },
-  { title: "Employee No", key: "emp_no" },
-  { title: "Company Name", key: "company" },
-  { title: "Actions", key: "actions", sortable: false },
-]
+
 
 const getTypeFullType = type => {
   if (type === "CA") return "Company Admin"
@@ -208,7 +200,7 @@ onMounted(() => {
         </VBtn>
       </div>
       <VDataTable
-        :headers="headers"
+        :headers="employeeHeaders"
         :items="employeeList"
         :items-per-page="10"
       >

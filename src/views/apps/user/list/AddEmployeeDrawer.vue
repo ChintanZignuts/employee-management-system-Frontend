@@ -64,7 +64,7 @@ watch(
 const onSubmit = async () => {
   try {
     let validate = await refForm.value?.validate()
-    console.log(validate)
+   
     if (validate.valid) {
       const formData = {
         first_name: FirstName.value,
@@ -96,7 +96,6 @@ const onSubmit = async () => {
 const fetchCompanyOptions = async () => {
   try {
     const token = localStorage.getItem("token")
-    const type = localStorage.getItem("type")
 
     const config = {
       headers: {
@@ -106,10 +105,7 @@ const fetchCompanyOptions = async () => {
 
     const response = await axios.get("employee/companies/option", config)
    
-    companyOptions.value = response.data
-    
-   
-    
+    companyOptions.value = response.data 
   } catch (error) {
     console.error("Error fetching company options:", error)
   }
