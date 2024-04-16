@@ -1,12 +1,12 @@
 <script setup>
 import { avatarText } from "@/@core/utils/formatters";
 import AddNewCompanyDrawer from "@/views/apps/user/list/AddNewCompanyDrawer.vue";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { toast } from "vue3-toastify";
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { companyHeaders } from "../utils/dataTableHeaders";
-import { useDebounceFn } from "@vueuse/core";
+import { useDebounceFn, watchThrottled } from "@vueuse/core";
 
 const deleteDialog = ref(false);
 const isAddNewCompanyDrawerVisible = ref(false);
@@ -18,6 +18,7 @@ const permentDelete = ref(false);
 const loading = ref(false);
 const pagination = ref(null);
 const search = ref("");
+const selectedStatus = ref(null);
 
 const resolveStatusVariant = (status) => {
   if (status === "A")
@@ -37,6 +38,16 @@ const resolveStatusVariant = (status) => {
     };
 };
 
+const status = [
+  {
+    title: "Active",
+    value: "A",
+  },
+  {
+    title: "Inactive",
+    value: "I",
+  },
+];
 const openAddNewCompanyDrawer = async (companyData) => {
   if (companyData) {
     try {
@@ -76,7 +87,7 @@ const closeDelete = () => {
   deleteDialog.value = false;
 };
 
-const fetchData = async (page = 1, search = "", perPage = 10) => {
+const fetchData = async (page = 1, search = "", perPage = 10, status) => {
   loading.value = true;
   try {
     const token = localStorage.getItem("token");
@@ -89,6 +100,7 @@ const fetchData = async (page = 1, search = "", perPage = 10) => {
         page: page,
         search: search,
         per_page: perPage,
+        filter: status,
       },
     };
 
@@ -179,6 +191,12 @@ const handlePagination = async (page) => {
   await fetchData(page);
 };
 
+const handleFilter = async () => {
+  fetchData(1, "", 10, selectedStatus.value);
+};
+
+watchEffect(handleFilter);
+
 onMounted(async () => {
   await fetchData();
 });
@@ -194,8 +212,8 @@ onMounted(async () => {
         </VBtn>
       </div>
       <VCardText>
-        <VRow>
-          <VCol cols="12" offset-md="8" md="4">
+        <VRow class="d-flex justify-end">
+          <VCol cols="12" md="4">
             <AppTextField
               v-model="search"
               density="compact"
@@ -206,6 +224,16 @@ onMounted(async () => {
               hide-details
               dense
               outlined
+            />
+          </VCol>
+          <VCol cols="12" md="4">
+            <AppSelect
+              v-model="selectedStatus"
+              placeholder="Filter Company By Status"
+              clearable
+              clear-icon="tabler-x"
+              single-line
+              :items="status"
             />
           </VCol>
         </VRow>

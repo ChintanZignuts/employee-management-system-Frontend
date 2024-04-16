@@ -7,6 +7,8 @@ import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { employeeHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn } from "@vueuse/core";
+import { useCompanyStore } from "../store/useCompany";
+import { watchEffect } from "vue";
 
 const deleteDialog = ref(false);
 const isAddEmployeeDrawerVisible = ref(false);
@@ -18,9 +20,16 @@ const editEmployeeData = ref(null);
 const isEditMode = ref(false);
 const pagination = ref(null);
 const search = ref("");
+const companyStore = useCompanyStore();
+const selectedCompany = ref(null);
 
 // Function to fetch employee data
-const fetchData = async (page = 1, search = "", perPage = 10) => {
+const fetchData = async (
+  page = 1,
+  search = null,
+  company_id = null,
+  perPage = 10
+) => {
   loading.value = true;
   try {
     const token = localStorage.getItem("token");
@@ -33,6 +42,7 @@ const fetchData = async (page = 1, search = "", perPage = 10) => {
         page: page,
         search: search,
         per_page: perPage,
+        company_id: company_id,
       },
     };
 
@@ -41,7 +51,6 @@ const fetchData = async (page = 1, search = "", perPage = 10) => {
 
       employeeList.value = response.data.data.data;
       pagination.value = response.data.data;
-      console.log(pagination.value);
       loading.value = false;
     }
   } catch (error) {
@@ -183,9 +192,16 @@ const handlePagination = async (page) => {
 const handleSearch = useDebounceFn(() => {
   fetchData(1, search.value);
 }, 500);
+
+const handleFilter = () => {
+  fetchData(1, "", selectedCompany.value);
+};
+
+watchEffect(handleFilter);
 // Fetch employee data when component is mounted
 onMounted(() => {
   fetchData();
+  companyStore.fetchCompanyOptions();
 });
 </script>
 
@@ -202,8 +218,8 @@ onMounted(() => {
         </VBtn>
       </div>
       <VCardText>
-        <VRow>
-          <VCol cols="12" offset-md="8" md="4">
+        <VRow class="d-flex justify-end">
+          <VCol cols="12" md="4">
             <AppTextField
               v-model="search"
               density="compact"
@@ -214,6 +230,18 @@ onMounted(() => {
               hide-details
               dense
               outlined
+            />
+          </VCol>
+          <VCol cols="12" md="4" v-if="companyStore.companyOptions.length > 1">
+            <AppSelect
+              v-model="selectedCompany"
+              placeholder="Filter Company By Status"
+              clearable
+              clear-icon="tabler-x"
+              single-line
+              :items="companyStore.companyOptions"
+              item-title="name"
+              item-value="id"
             />
           </VCol>
         </VRow>

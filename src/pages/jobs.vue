@@ -2,9 +2,11 @@
 import AddJobDrawer from "@/views/apps/user/list/AddJobDrawer.vue";
 import { onMounted, ref } from "vue";
 import { toast } from "vue3-toastify";
-import { VDataTable, VDataTableServer } from "vuetify/labs/VDataTable";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { jobHeaders } from "../utils/dataTableHeaders";
+import { watchEffect } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 
 const deleteDialog = ref(false);
 const isAddJobDrawerVisible = ref(false);
@@ -16,6 +18,7 @@ const permentDelete = ref(false);
 const loading = ref(false);
 const pagination = ref(null);
 const search = ref("");
+const selectedEmpType = ref(null);
 
 // functions for data table start
 const resolveJobStatus = (expiryDate) => {
@@ -33,8 +36,22 @@ const resolveJobStatus = (expiryDate) => {
     };
 };
 
+const EmploymentOptions = [
+  { title: "Full-time" },
+  { title: "Part-time" },
+  { title: "Contract" },
+  { title: "Freelance" },
+  { title: "Internship" },
+  { title: "Remote" },
+];
+
 //function for fetch data of job
-const fetchData = async (page = 1, search = "", perPage = 10) => {
+const fetchData = async (
+  page = 1,
+  search = "",
+  filter = null,
+  perPage = 10
+) => {
   loading.value = true;
   try {
     const token = localStorage.getItem("token");
@@ -47,6 +64,7 @@ const fetchData = async (page = 1, search = "", perPage = 10) => {
         page: page,
         search: search,
         per_page: perPage,
+        filter: filter,
       },
     };
 
@@ -164,13 +182,19 @@ const addNewJob = async (jobData) => {
 };
 
 const handleSearch = useDebounceFn(() => {
-  fetchData(1, search.value);
+  fetchData(1, search.value, selectedEmpType.value);
 }, 500);
 
 const handlePagination = async (page) => {
   console.log("Page:", page);
   await fetchData(page);
 };
+
+const handleFilter = () => {
+  fetchData(1, "", selectedEmpType.value);
+};
+
+watchEffect(handleFilter);
 
 onMounted(() => {
   fetchData();
@@ -191,8 +215,8 @@ onMounted(() => {
         </VBtn>
       </div>
       <VCardText>
-        <VRow>
-          <VCol cols="12" offset-md="8" md="4">
+        <VRow class="d-flex justify-end">
+          <VCol cols="12" md="4">
             <AppTextField
               v-model="search"
               density="compact"
@@ -203,6 +227,17 @@ onMounted(() => {
               hide-details
               dense
               outlined
+            />
+          </VCol>
+          <VCol cols="12" md="4">
+            <AppSelect
+              v-model="selectedEmpType"
+              placeholder="Filter Company By Employment Type"
+              clearable
+              clear-icon="tabler-x"
+              single-line
+              :items="EmploymentOptions"
+              item-value="title"
             />
           </VCol>
         </VRow>

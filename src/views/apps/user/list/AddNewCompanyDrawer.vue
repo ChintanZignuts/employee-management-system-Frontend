@@ -108,21 +108,16 @@ const onSubmit = async () => {
       formData.append("admin[joining_date]", AdminJoiningDate.value)
       formData.append("admin[emp_no]", EmployeeNumber.value)
 
-      // Include AdminEmail for new companies
       if (!props.companyData) {
         formData.append("admin[email]", AdminEmail.value)
       }
 
-      // Emit userData event with form data
       emit("userData", formData)
 
-      // Reset form validation
       refForm.value?.resetValidation()
 
-      // Close navigation drawer
       closeNavigationDrawer()
 
-      // Reset form after submission (consider using a separate reset function)
       nextTick(() => {
         clearForm()
       })
