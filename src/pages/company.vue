@@ -6,6 +6,7 @@ import { toast } from "vue3-toastify";
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { companyHeaders } from "../utils/dataTableHeaders";
+import { useDebounceFn } from "@vueuse/core";
 
 const deleteDialog = ref(false);
 const isAddNewCompanyDrawerVisible = ref(false);
@@ -16,8 +17,7 @@ const userList = ref([]);
 const permentDelete = ref(false);
 const loading = ref(false);
 const pagination = ref(null);
-const itemPerPage = ref(1);
-const totalPage = ref(0);
+const search = ref("");
 
 const resolveStatusVariant = (status) => {
   if (status === "A")
@@ -76,7 +76,7 @@ const closeDelete = () => {
   deleteDialog.value = false;
 };
 
-const fetchData = async (page = 1, search = "", perPage = 1) => {
+const fetchData = async (page = 1, search = "", perPage = 10) => {
   loading.value = true;
   try {
     const token = localStorage.getItem("token");
@@ -96,9 +96,6 @@ const fetchData = async (page = 1, search = "", perPage = 1) => {
 
     userList.value = response.data.data.data;
     pagination.value = response.data.data;
-    totalPage.value = pagination.value.total;
-    itemPerPage.value = pagination.value.per_page;
-    console.log(pagination.value.total);
   } catch (error) {
     console.error("Failed to fetch company data:", error.message);
     toast.error("Failed to fetch company data");
@@ -133,11 +130,6 @@ const deleteItemConfirm = async () => {
     console.error("Failed to delete company:", error);
     toast.error(error.response.data.message);
   }
-};
-
-const handlePagination = async (page) => {
-  console.log("Page:", page);
-  await fetchData(page);
 };
 
 const addNewCompany = async (userData) => {
@@ -178,6 +170,15 @@ const addNewCompany = async (userData) => {
   loading.value = false;
 };
 
+const handleSearch = useDebounceFn(() => {
+  fetchData(1, search.value);
+}, 500);
+
+const handlePagination = async (page) => {
+  console.log("Page:", page);
+  await fetchData(page);
+};
+
 onMounted(async () => {
   await fetchData();
 });
@@ -185,24 +186,39 @@ onMounted(async () => {
 
 <template>
   <div>
-    <!-- loading-->
-    <div v-if="loading" class="d-flex justify-center">
-      <VProgressCircular :size="40" color="primary" indeterminate />
-    </div>
     <!-- 👉 Add user button -->
-    <div v-else-if="pagination !== null">
+    <div v-if="pagination !== null">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddNewCompanyDrawer(null)">
           Add New Company
         </VBtn>
       </div>
+      <VCardText>
+        <VRow>
+          <VCol cols="12" offset-md="8" md="4">
+            <AppTextField
+              v-model="search"
+              density="compact"
+              placeholder="Search"
+              append-inner-icon="tabler-search"
+              @input="handleSearch"
+              single-line
+              hide-details
+              dense
+              outlined
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
       <VDataTableServer
-        v-model:items-per-page="itemPerPage"
+        v-model:items-per-page="pagination.per_page"
         :headers="companyHeaders"
         :items="userList"
-        :items-length="totalPage"
+        :items-length="pagination.total"
         :loading="loading"
+        :search="search"
         item.value="item"
+        :page="pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- Name column -->
@@ -271,7 +287,7 @@ onMounted(async () => {
       </VDataTableServer>
     </div>
     <VDialog v-model="deleteDialog" max-width="500px">
-      <VCard>
+      <VCard class="align-center d-flex justify-center ma-5">
         <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
         <div class="demo-space-x">
           <VCheckbox
@@ -279,7 +295,7 @@ onMounted(async () => {
             label=" Delete Company Permanent"
           />
         </div>
-        <VCardActions>
+        <VCardActions class="mt-5">
           <VSpacer />
           <VBtn color="error" variant="outlined" @click="closeDelete">
             Cancel

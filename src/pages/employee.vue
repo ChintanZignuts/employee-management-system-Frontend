@@ -1,208 +1,232 @@
 <script setup>
-import { avatarText } from "@/@core/utils/formatters"
-import AddEmployeeDrawer from "@/views/apps/user/list/AddEmployeeDrawer.vue"
-import { onMounted, ref } from "vue"
-import { toast } from 'vue3-toastify'
-import { VDataTable } from "vuetify/labs/VDataTable"
-import axios from "../axiosConfig"
-import { employeeHeaders } from "../utils/dataTableHeaders"
+import { avatarText } from "@/@core/utils/formatters";
+import AddEmployeeDrawer from "@/views/apps/user/list/AddEmployeeDrawer.vue";
+import { onMounted, ref } from "vue";
+import { toast } from "vue3-toastify";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import axios from "../axiosConfig";
+import { employeeHeaders } from "../utils/dataTableHeaders";
+import { useDebounceFn } from "@vueuse/core";
 
-const deleteDialog = ref(false)
-const isAddEmployeeDrawerVisible = ref(false)
-const deleteItemId = ref(null)
-const employeeList = ref([])
-const permentDelete = ref(false)
-const loading = ref(false)
-const editEmployeeData = ref(null)
-const isEditMode = ref(false)
+const deleteDialog = ref(false);
+const isAddEmployeeDrawerVisible = ref(false);
+const deleteItemId = ref(null);
+const employeeList = ref([]);
+const permentDelete = ref(false);
+const loading = ref(false);
+const editEmployeeData = ref(null);
+const isEditMode = ref(false);
+const pagination = ref(null);
+const search = ref("");
 
 // Function to fetch employee data
-const fetchData = async () => {
-  loading.value = true
+const fetchData = async (page = 1, search = "", perPage = 10) => {
+  loading.value = true;
   try {
-    const token = localStorage.getItem("token")
-    
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+      params: {
+        page: page,
+        search: search,
+        per_page: perPage,
+      },
+    };
 
-    if(token){
+    if (token) {
+      const response = await axios.get("/allemployee", config);
 
-      const response = await axios.get("/allemployee", config)
-  
-      employeeList.value = response.data.data
+      employeeList.value = response.data.data.data;
+      pagination.value = response.data.data;
+      console.log(pagination.value);
+      loading.value = false;
     }
-    
   } catch (error) {
-    console.error("Failed to fetch employee data:", error.message)
-    toast.error(error.message)
+    console.error("Failed to fetch employee data:", error.message);
+    toast.error(error.message);
   }
-  loading.value = false
-}
+};
 
-
-
-const getTypeFullType = type => {
-  if (type === "CA") return "Company Admin"
-  else if (type === "E") return "Employee"
-  else return "Unknown"
-}
+const getTypeFullType = (type) => {
+  if (type === "CA") return "Company Admin";
+  else if (type === "E") return "Employee";
+  else return "Unknown";
+};
 
 // Function to delete an employee
-const deleteItem = id => {
-  deleteItemId.value = id
-  deleteDialog.value = true
-}
+const deleteItem = (id) => {
+  deleteItemId.value = id;
+  deleteDialog.value = true;
+};
 
 // Function to confirm deletion of an employee
 const deleteItemConfirm = async () => {
   try {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    };
 
-    if(token){
-
+    if (token) {
       await axios.post(
         `/employee/delete/${deleteItemId.value}`,
         { permanent: permentDelete.value },
-        config,
-      )
-  
+        config
+      );
+
       // Remove the deleted employee from the list
       employeeList.value = employeeList.value.filter(
-        employee => employee.id !== deleteItemId.value,
-      )
-      closeDelete()
-      toast.success("Employee Deleted")
+        (employee) => employee.id !== deleteItemId.value
+      );
+      closeDelete();
+      toast.success("Employee Deleted");
     }
 
     // Close the delete dialog
   } catch (error) {
-    console.error("Failed to delete employee:", error.message)
-    toast.error(error.message)
+    console.error("Failed to delete employee:", error.message);
+    toast.error(error.message);
   }
-}
+};
 
 // Function to close the delete dialog
 const closeDelete = () => {
-  deleteDialog.value = false
-  deleteItemId.value = null
-  permentDelete.value = false
-}
+  deleteDialog.value = false;
+  deleteItemId.value = null;
+  permentDelete.value = false;
+};
 
-const openAddEmployeeDrawer = async employeeId => {
+const openAddEmployeeDrawer = async (employeeId) => {
   if (employeeId) {
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
 
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      };
 
-      const response = await axios.get(`employee/${employeeId}`, config)
+      const response = await axios.get(`employee/${employeeId}`, config);
 
-      editEmployeeData.value = response.data.data
+      editEmployeeData.value = response.data.data;
       if (editEmployeeData.value) {
-        isAddEmployeeDrawerVisible.value = true
-        isEditMode.value = true
+        isAddEmployeeDrawerVisible.value = true;
+        isEditMode.value = true;
       }
     } catch (error) {
-      console.error("Failed to fetch Employee details:", error.message)
-      toast.error("Failed to fetch Employee details")
+      console.error("Failed to fetch Employee details:", error.message);
+      toast.error("Failed to fetch Employee details");
     }
   } else {
-    editEmployeeData.value = null
-    isEditMode.value = false
-    isAddEmployeeDrawerVisible.value = true
+    editEmployeeData.value = null;
+    isEditMode.value = false;
+    isAddEmployeeDrawerVisible.value = true;
   }
-}
+};
 
-const addNewEmployee = async employeeData => {
+const addNewEmployee = async (employeeData) => {
   try {
-    loading.value = true
+    loading.value = true;
 
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    };
 
     if (isEditMode.value) {
       const response = await axios.post(
         `employee/update/${editEmployeeData.value.id}`,
         employeeData,
-        config,
-      )
+        config
+      );
 
-      console.log("Employee updated successfully:", response.data)
-      toast.success("Employee updated successfully")
+      console.log("Employee updated successfully:", response.data);
+      toast.success("Employee updated successfully");
     } else {
       const response = await axios.post(
         "employee/create",
         employeeData,
-        config,
-      )
-      
-      console.log("Employee created successfully:", response.data)
-      toast.success("Employee created successfully")
+        config
+      );
+
+      console.log("Employee created successfully:", response.data);
+      toast.success("Employee created successfully");
     }
-    
-    fetchData()
-    
-    isAddEmployeeDrawerVisible.value = false
-    loading.value = false
+
+    fetchData();
+
+    isAddEmployeeDrawerVisible.value = false;
+    loading.value = false;
   } catch (error) {
-    console.error("Failed to update or create Employee:", error.message)
-    toast.error(error.message)
+    console.error("Failed to update or create Employee:", error.message);
+    toast.error(error.message);
   }
 
-  loading.value = false
-}
+  loading.value = false;
+};
 
+const handlePagination = async (page) => {
+  console.log("Page:", page);
+  await fetchData(page);
+};
+
+const handleSearch = useDebounceFn(() => {
+  fetchData(1, search.value);
+}, 500);
 // Fetch employee data when component is mounted
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 </script>
 
 <template>
   <div>
-    <div
-      v-if="loading"
-      class="d-flex justify-center"
-    >
-      <VProgressCircular
-        :size="40"
-        color="primary"
-        indeterminate
-      />
-    </div>
-    <div v-else>
+    <!-- <div v-if="loading" class="d-flex justify-center">
+      <VProgressCircular :size="40" color="primary" indeterminate />
+    </div> -->
+    <div v-if="pagination">
       <!-- Employee table -->
       <div class="d-flex justify-end ma-3">
-        <VBtn
-          prepend-icon="tabler-plus"
-          @click="openAddEmployeeDrawer(null)"
-        >
+        <VBtn prepend-icon="tabler-plus" @click="openAddEmployeeDrawer(null)">
           Add New Employee
         </VBtn>
       </div>
-      <VDataTable
+      <VCardText>
+        <VRow>
+          <VCol cols="12" offset-md="8" md="4">
+            <AppTextField
+              v-model="search"
+              density="compact"
+              placeholder="Search"
+              append-inner-icon="tabler-search"
+              @input="handleSearch"
+              single-line
+              hide-details
+              dense
+              outlined
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
+      <VDataTableServer
+        v-model:items-per-page="pagination.per_page"
         :headers="employeeHeaders"
         :items="employeeList"
-        :items-per-page="10"
+        :items-length="pagination.total"
+        :loading="loading"
+        item.value="employee"
+        :page="pagination.current_page"
+        @update:page="handlePagination"
       >
         <!-- Employee Name column -->
         <template #item.first_name="{ item }">
@@ -214,10 +238,7 @@ onMounted(() => {
               :class="item.raw.avatar ? '' : 'v-avatar-light-bg primary--text'"
               :variant="!item.raw.avatar ? 'tonal' : undefined"
             >
-              <VImg
-                v-if="item.raw.avatar"
-                src=""
-              />
+              <VImg v-if="item.raw.avatar" src="" />
               <span v-else>{{
                 avatarText(item.raw.first_name + " " + item.raw.last_name)
               }}</span>
@@ -225,7 +246,10 @@ onMounted(() => {
 
             <!-- Name and location -->
             <div class="d-flex flex-column ms-3">
-              <span class="d-block font-weight-medium text--primary text-truncate">{{ item.raw.first_name }}</span>
+              <span
+                class="d-block font-weight-medium text--primary text-truncate"
+                >{{ item.raw.first_name }}</span
+              >
               <small>{{ item.raw.city }}</small>
             </div>
           </div>
@@ -256,14 +280,11 @@ onMounted(() => {
             </IconBtn>
           </div>
         </template>
-      </VDataTable>
+      </VDataTableServer>
     </div>
     <!-- Delete confirmation dialog -->
-    <VDialog
-      v-model="deleteDialog"
-      max-width="500px"
-    >
-      <VCard>
+    <VDialog v-model="deleteDialog" max-width="500px">
+      <VCard class="align-center d-flex justify-center ma-5">
         <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
         <div class="demo-space-x">
           <VCheckbox
@@ -271,20 +292,12 @@ onMounted(() => {
             label=" Delete Employee Permanent"
           />
         </div>
-        <VCardActions>
+        <VCardActions class="mt-5">
           <VSpacer />
-          <VBtn
-            color="error"
-            variant="outlined"
-            @click="closeDelete"
-          >
+          <VBtn color="error" variant="outlined" @click="closeDelete">
             Cancel
           </VBtn>
-          <VBtn
-            color="success"
-            variant="elevated"
-            @click="deleteItemConfirm"
-          >
+          <VBtn color="success" variant="elevated" @click="deleteItemConfirm">
             OK
           </VBtn>
           <VSpacer />
