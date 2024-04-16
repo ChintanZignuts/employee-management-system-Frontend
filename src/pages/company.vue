@@ -7,18 +7,17 @@ import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { companyHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn, watchThrottled } from "@vueuse/core";
+import { useCompanyStore } from "@/store/useCompany";
 
 const deleteDialog = ref(false);
 const isAddNewCompanyDrawerVisible = ref(false);
 const editCompanyData = ref(null);
 const isEditMode = ref(false);
 const deleteItemId = ref(null);
-const userList = ref([]);
 const permentDelete = ref(false);
-const loading = ref(false);
-const pagination = ref(null);
 const search = ref("");
 const selectedStatus = ref(null);
+const companyStore = useCompanyStore();
 
 const resolveStatusVariant = (status) => {
   if (status === "A")
@@ -48,6 +47,7 @@ const status = [
     value: "I",
   },
 ];
+
 const openAddNewCompanyDrawer = async (companyData) => {
   if (companyData) {
     try {
@@ -87,34 +87,6 @@ const closeDelete = () => {
   deleteDialog.value = false;
 };
 
-const fetchData = async (page = 1, search = "", perPage = 10, status) => {
-  loading.value = true;
-  try {
-    const token = localStorage.getItem("token");
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        page: page,
-        search: search,
-        per_page: perPage,
-        filter: status,
-      },
-    };
-
-    const response = await axios.get(`/companies`, config);
-
-    userList.value = response.data.data.data;
-    pagination.value = response.data.data;
-  } catch (error) {
-    console.error("Failed to fetch company data:", error.message);
-    toast.error("Failed to fetch company data");
-  }
-  loading.value = false;
-};
-
 const deleteItemConfirm = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -131,11 +103,7 @@ const deleteItemConfirm = async () => {
       config
     );
 
-    // Remove the company from the list
-    userList.value = userList.value.filter(
-      (company) => company.id !== deleteItemId.value
-    );
-    fetchData();
+    companyStore.fetchCompanyData(1, search.value, selectedStatus.value);
     closeDelete();
     toast.success("Company Deleted Successfully");
   } catch (error) {
@@ -172,7 +140,7 @@ const addNewCompany = async (userData) => {
       toast.success(response.data.message);
     }
 
-    await fetchData();
+    await companyStore.fetchCompanyData(1, search.value, selectedStatus.value);
 
     isAddNewCompanyDrawerVisible.value = false;
   } catch (error) {
@@ -183,29 +151,25 @@ const addNewCompany = async (userData) => {
 };
 
 const handleSearch = useDebounceFn(() => {
-  fetchData(1, search.value);
+  companyStore.fetchCompanyData(1, search.value);
 }, 500);
 
-const handlePagination = async (page) => {
+const handlePagination = (page) => {
   console.log("Page:", page);
-  await fetchData(page);
+  companyStore.fetchCompanyData(page);
 };
 
 const handleFilter = async () => {
-  fetchData(1, "", 10, selectedStatus.value);
+  companyStore.fetchCompanyData(1, "", selectedStatus.value);
 };
 
 watchEffect(handleFilter);
-
-onMounted(async () => {
-  await fetchData();
-});
 </script>
 
 <template>
   <div>
     <!-- 👉 Add user button -->
-    <div v-if="pagination !== null">
+    <div v-if="companyStore.pagination !== null">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddNewCompanyDrawer(null)">
           Add New Company
@@ -239,14 +203,14 @@ onMounted(async () => {
         </VRow>
       </VCardText>
       <VDataTableServer
-        v-model:items-per-page="pagination.per_page"
+        v-model:items-per-page="companyStore.pagination.per_page"
         :headers="companyHeaders"
-        :items="userList"
-        :items-length="pagination.total"
-        :loading="loading"
+        :items="companyStore.companyList"
+        :items-length="companyStore.pagination.total"
+        :loading="companyStore.loading"
         :search="search"
         item.value="item"
-        :page="pagination.current_page"
+        :page="companyStore.pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- Name column -->

@@ -201,7 +201,6 @@ watchEffect(handleFilter);
 // Fetch employee data when component is mounted
 onMounted(() => {
   fetchData();
-  companyStore.fetchCompanyOptions();
 });
 </script>
 

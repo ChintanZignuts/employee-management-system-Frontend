@@ -1,6 +1,6 @@
 <script setup>
 import { emailValidator, requiredValidator } from "@validators";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { useCompanyStore } from "../../../../store/useCompany";
 const props = defineProps({
@@ -94,10 +94,6 @@ console.log(companyStore.companyOptions);
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isEmployeeDrawerOpen", val);
 };
-
-onMounted(() => {
-  companyStore.fetchCompanyOptions();
-});
 </script>
 
 <template>

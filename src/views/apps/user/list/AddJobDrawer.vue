@@ -1,6 +1,6 @@
 <script setup>
 import { requiredValidator } from "@validators";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { skills } from "../../../../utils/requiredSkills";
 import { useCompanyStore } from "../../../../store/useCompany";
@@ -114,10 +114,6 @@ const onSubmit = async () => {
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isJobDrawerOpen", val);
 };
-
-onMounted(() => {
-  companyStore.fetchCompanyOptions();
-});
 </script>
 
 <template>
