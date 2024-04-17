@@ -1,63 +1,29 @@
 <script setup>
+//page for employee list,search,filter
+
+//imports
 import { avatarText } from "@/@core/utils/formatters";
 import AddEmployeeDrawer from "@/views/apps/user/list/AddEmployeeDrawer.vue";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { toast } from "vue3-toastify";
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { employeeHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn } from "@vueuse/core";
 import { useCompanyStore } from "../store/useCompany";
-import { watchEffect } from "vue";
+import { useEmployeeStore } from "../store/useEmployee";
 
+//constants
 const deleteDialog = ref(false);
 const isAddEmployeeDrawerVisible = ref(false);
 const deleteItemId = ref(null);
-const employeeList = ref([]);
 const permentDelete = ref(false);
-const loading = ref(false);
 const editEmployeeData = ref(null);
 const isEditMode = ref(false);
-const pagination = ref(null);
-const search = ref("");
-const companyStore = useCompanyStore();
+const search = ref(null);
 const selectedCompany = ref(null);
-
-// Function to fetch employee data
-const fetchData = async (
-  page = 1,
-  search = null,
-  company_id = null,
-  perPage = 10
-) => {
-  loading.value = true;
-  try {
-    const token = localStorage.getItem("token");
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        page: page,
-        search: search,
-        per_page: perPage,
-        company_id: company_id,
-      },
-    };
-
-    if (token) {
-      const response = await axios.get("/allemployee", config);
-
-      employeeList.value = response.data.data.data;
-      pagination.value = response.data.data;
-      loading.value = false;
-    }
-  } catch (error) {
-    console.error("Failed to fetch employee data:", error.message);
-    toast.error(error.message);
-  }
-};
+const companyStore = useCompanyStore();
+const employeeStore = useEmployeeStore();
 
 const getTypeFullType = (type) => {
   if (type === "CA") return "Company Admin";
@@ -74,15 +40,13 @@ const deleteItem = (id) => {
 // Function to confirm deletion of an employee
 const deleteItemConfirm = async () => {
   try {
-    const token = localStorage.getItem("token");
-
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${employeeStore.token}`,
       },
     };
 
-    if (token) {
+    if (employeeStore.token) {
       await axios.post(
         `/employee/delete/${deleteItemId.value}`,
         { permanent: permentDelete.value },
@@ -90,17 +54,16 @@ const deleteItemConfirm = async () => {
       );
 
       // Remove the deleted employee from the list
-      employeeList.value = employeeList.value.filter(
-        (employee) => employee.id !== deleteItemId.value
-      );
+
       closeDelete();
+      employeeStore.fetchEmployeeData(1, search.value, selectedCompany.value);
       toast.success("Employee Deleted");
     }
 
     // Close the delete dialog
   } catch (error) {
-    console.error("Failed to delete employee:", error.message);
-    toast.error(error.message);
+    console.error("Failed to delete employee:", error);
+    toast.error(error.response.data.error);
   }
 };
 
@@ -111,14 +74,13 @@ const closeDelete = () => {
   permentDelete.value = false;
 };
 
+// function for fetch data of employee and open edit or create form drawer
 const openAddEmployeeDrawer = async (employeeId) => {
   if (employeeId) {
     try {
-      const token = localStorage.getItem("token");
-
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${employeeStore.token}`,
         },
       };
 
@@ -140,15 +102,14 @@ const openAddEmployeeDrawer = async (employeeId) => {
   }
 };
 
+//function for create and edit employee used by addEmployeeDrawer component
 const addNewEmployee = async (employeeData) => {
   try {
-    loading.value = true;
-
-    const token = localStorage.getItem("token");
+    employeeStore.loading = true;
 
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${employeeStore.token}`,
       },
     };
 
@@ -172,51 +133,47 @@ const addNewEmployee = async (employeeData) => {
       toast.success("Employee created successfully");
     }
 
-    fetchData();
+    employeeStore.fetchEmployeeData();
 
     isAddEmployeeDrawerVisible.value = false;
-    loading.value = false;
   } catch (error) {
     console.error("Failed to update or create Employee:", error.message);
     toast.error(error.message);
   }
 
-  loading.value = false;
+  employeeStore.loading = false;
 };
 
-const handlePagination = async (page) => {
-  console.log("Page:", page);
-  await fetchData(page);
+//for change page and make api call
+const handlePagination = (page) => {
+  employeeStore.fetchEmployeeData(page, search.value, selectedCompany.value);
 };
 
+//for searching
 const handleSearch = useDebounceFn(() => {
-  fetchData(1, search.value);
+  employeeStore.fetchEmployeeData(1, search.value, selectedCompany.value);
 }, 500);
 
+//for filtering
 const handleFilter = () => {
-  fetchData(1, "", selectedCompany.value);
+  employeeStore.fetchEmployeeData(1, "", selectedCompany.value);
 };
 
-watchEffect(handleFilter);
-// Fetch employee data when component is mounted
-onMounted(() => {
-  fetchData();
-});
+//watcher for detect change in selectedCompany and run function
+watch(selectedCompany, handleFilter);
 </script>
 
 <template>
   <div>
-    <!-- <div v-if="loading" class="d-flex justify-center">
-      <VProgressCircular :size="40" color="primary" indeterminate />
-    </div> -->
-    <div v-if="pagination">
-      <!-- Employee table -->
+    <!-- 👉 add new employee btn  -->
+    <div v-if="employeeStore.pagination">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddEmployeeDrawer(null)">
           Add New Employee
         </VBtn>
       </div>
       <VCardText>
+        <!-- 👉 search field  -->
         <VRow class="d-flex justify-end">
           <VCol cols="12" md="4">
             <AppTextField
@@ -231,10 +188,12 @@ onMounted(() => {
               outlined
             />
           </VCol>
+
+          <!-- 👉 select filter field  -->
           <VCol cols="12" md="4" v-if="companyStore.companyOptions.length > 1">
             <AppSelect
               v-model="selectedCompany"
-              placeholder="Filter Company By Status"
+              placeholder="Filter Employee by Company"
               clearable
               clear-icon="tabler-x"
               single-line
@@ -245,20 +204,22 @@ onMounted(() => {
           </VCol>
         </VRow>
       </VCardText>
+
+      <!-- 👉 Employee table -->
       <VDataTableServer
-        v-model:items-per-page="pagination.per_page"
+        v-model:items-per-page="employeeStore.pagination.per_page"
         :headers="employeeHeaders"
-        :items="employeeList"
-        :items-length="pagination.total"
-        :loading="loading"
+        :items="employeeStore.employeeList"
+        :items-length="employeeStore.pagination.total"
+        :loading="employeeStore.loading"
         item.value="employee"
-        :page="pagination.current_page"
+        :page="employeeStore.pagination.current_page"
         @update:page="handlePagination"
       >
-        <!-- Employee Name column -->
+        <!-- 👉  Employee Name column -->
         <template #item.first_name="{ item }">
           <div class="d-flex align-center">
-            <!-- Avatar -->
+            <!-- 👉  Avatar -->
             <VAvatar
               size="32"
               :color="item.raw.avatar ? '' : 'primary'"
@@ -271,7 +232,7 @@ onMounted(() => {
               }}</span>
             </VAvatar>
 
-            <!-- Name and location -->
+            <!--👉  Name and location -->
             <div class="d-flex flex-column ms-3">
               <span
                 class="d-block font-weight-medium text--primary text-truncate"
@@ -281,22 +242,28 @@ onMounted(() => {
             </div>
           </div>
         </template>
-        <!-- Email column -->
+
+        <!-- 👉  Email column -->
         <template #item.email="{ item }">
           <span>{{ item.raw.email }}</span>
         </template>
-        <!-- Type column -->
+
+        <!--👉  Type column -->
         <template #item.type="{ item }">
           <span>{{ getTypeFullType(item.raw.type) }}</span>
         </template>
+
+        <!-- 👉 employee number -->
         <template #item.emp_no="{ item }">
           <span>{{ item.raw.emp_no }}</span>
         </template>
-        <!-- Company column -->
+
+        <!-- 👉 Company column -->
         <template #item.company="{ item }">
           <span>{{ item.raw.company.name }}</span>
         </template>
-        <!-- Actions column -->
+
+        <!--👉 Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <IconBtn @click="openAddEmployeeDrawer(item.raw.id)">
@@ -309,7 +276,8 @@ onMounted(() => {
         </template>
       </VDataTableServer>
     </div>
-    <!-- Delete confirmation dialog -->
+
+    <!-- 👉 Delete confirmation dialog -->
     <VDialog v-model="deleteDialog" max-width="500px">
       <VCard class="align-center d-flex justify-center ma-5">
         <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
@@ -331,6 +299,8 @@ onMounted(() => {
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- 👉 create and edit employee form drawer -->
     <AddEmployeeDrawer
       v-model:isEmployeeDrawerOpen="isAddEmployeeDrawerVisible"
       :employee-data="editEmployeeData"

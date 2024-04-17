@@ -1,24 +1,41 @@
 <script setup>
+//page for company listing ,searching and filter
+
+//imports
 import { avatarText } from "@/@core/utils/formatters";
 import AddNewCompanyDrawer from "@/views/apps/user/list/AddNewCompanyDrawer.vue";
-import { onMounted, ref, watchEffect } from "vue";
+import { ref } from "vue";
 import { toast } from "vue3-toastify";
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { companyHeaders } from "../utils/dataTableHeaders";
-import { useDebounceFn, watchThrottled } from "@vueuse/core";
-import { useCompanyStore } from "@/store/useCompany";
+import { useDebounceFn } from "@vueuse/core";
+import { useCompanyStore } from "../store/useCompany";
 
+//constants and ref
 const deleteDialog = ref(false);
 const isAddNewCompanyDrawerVisible = ref(false);
 const editCompanyData = ref(null);
 const isEditMode = ref(false);
 const deleteItemId = ref(null);
 const permentDelete = ref(false);
-const search = ref("");
+const search = ref(null);
 const selectedStatus = ref(null);
+const status = [
+  {
+    title: "Active",
+    value: "A",
+  },
+  {
+    title: "Inactive",
+    value: "I",
+  },
+];
+
+//company store
 const companyStore = useCompanyStore();
 
+//function convert company status A to Active and I to inactive
 const resolveStatusVariant = (status) => {
   if (status === "A")
     return {
@@ -37,17 +54,8 @@ const resolveStatusVariant = (status) => {
     };
 };
 
-const status = [
-  {
-    title: "Active",
-    value: "A",
-  },
-  {
-    title: "Inactive",
-    value: "I",
-  },
-];
-
+//function fetch data of company from backend and set it in variable that use for show values in edit company form
+//also open the drawer
 const openAddNewCompanyDrawer = async (companyData) => {
   if (companyData) {
     try {
@@ -78,15 +86,18 @@ const openAddNewCompanyDrawer = async (companyData) => {
   }
 };
 
+//open delete dialog
 const deleteItem = (item) => {
   deleteItemId.value = item;
   deleteDialog.value = true;
 };
 
+//close delete dialog
 const closeDelete = () => {
   deleteDialog.value = false;
 };
 
+// function that run after confirmation from delete dialog
 const deleteItemConfirm = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -112,8 +123,9 @@ const deleteItemConfirm = async () => {
   }
 };
 
+//function that use for both create and edit company data with their admin details
 const addNewCompany = async (userData) => {
-  loading.value = true;
+  companyStore.loading = true;
   try {
     const token = localStorage.getItem("token");
 
@@ -141,29 +153,32 @@ const addNewCompany = async (userData) => {
     }
 
     await companyStore.fetchCompanyData(1, search.value, selectedStatus.value);
-
+    await companyStore.fetchCompanyOptions();
     isAddNewCompanyDrawerVisible.value = false;
   } catch (error) {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  loading.value = false;
+  companyStore.loading = false;
 };
 
+//handle search of user with debounce effect
 const handleSearch = useDebounceFn(() => {
   companyStore.fetchCompanyData(1, search.value);
 }, 500);
 
+//handle the pagination
 const handlePagination = (page) => {
   console.log("Page:", page);
   companyStore.fetchCompanyData(page);
 };
 
+//for filter based on company status
 const handleFilter = async () => {
   companyStore.fetchCompanyData(1, "", selectedStatus.value);
 };
 
-watchEffect(handleFilter);
+watch(selectedStatus, handleFilter);
 </script>
 
 <template>
@@ -176,6 +191,7 @@ watchEffect(handleFilter);
         </VBtn>
       </div>
       <VCardText>
+        <!-- 👉 Search field -->
         <VRow class="d-flex justify-end">
           <VCol cols="12" md="4">
             <AppTextField
@@ -190,6 +206,7 @@ watchEffect(handleFilter);
               outlined
             />
           </VCol>
+          <!-- 👉 select filter field -->
           <VCol cols="12" md="4">
             <AppSelect
               v-model="selectedStatus"
@@ -202,6 +219,7 @@ watchEffect(handleFilter);
           </VCol>
         </VRow>
       </VCardText>
+      <!-- table for list data  -->
       <VDataTableServer
         v-model:items-per-page="companyStore.pagination.per_page"
         :headers="companyHeaders"
@@ -213,10 +231,10 @@ watchEffect(handleFilter);
         :page="companyStore.pagination.current_page"
         @update:page="handlePagination"
       >
-        <!-- Name column -->
+        <!--👉 Name column -->
         <template #item.name="{ item }">
           <div class="d-flex align-center">
-            <!-- Avatar -->
+            <!--👉 Avatar -->
             <VAvatar
               size="32"
               :color="item.raw.avatar ? '' : 'primary'"
@@ -230,7 +248,7 @@ watchEffect(handleFilter);
               <span v-else>{{ avatarText(item.raw.name) }}</span>
             </VAvatar>
 
-            <!-- Name and location -->
+            <!--👉 Name and location -->
             <div class="d-flex flex-column ms-3">
               <span
                 class="d-block font-weight-medium text--primary text-truncate"
@@ -241,19 +259,19 @@ watchEffect(handleFilter);
           </div>
         </template>
 
-        <!-- Email column -->
+        <!--👉 Email column -->
         <template #item.company_email="{ item }">
           <span>{{ item.raw.company_email }}</span>
         </template>
 
-        <!-- Website column -->
+        <!--👉 Website column -->
         <template #item.website="{ item }">
           <a :href="item.raw.website" target="_blank" rel="noopener noreferrer"
             ><span>{{ item.raw.name }}</span></a
           >
         </template>
 
-        <!-- Status column -->
+        <!--👉 Status column -->
         <template #item.status="{ item }">
           <VChip
             :color="resolveStatusVariant(item.raw.status).color"
@@ -265,7 +283,7 @@ watchEffect(handleFilter);
           </VChip>
         </template>
 
-        <!-- Actions column -->
+        <!--👉 Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <IconBtn @click="openAddNewCompanyDrawer(item.raw)">
@@ -278,6 +296,8 @@ watchEffect(handleFilter);
         </template>
       </VDataTableServer>
     </div>
+
+    <!-- dialog for delete confirmation -->
     <VDialog v-model="deleteDialog" max-width="500px">
       <VCard class="align-center d-flex justify-center ma-5">
         <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
@@ -299,6 +319,8 @@ watchEffect(handleFilter);
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- //create and edit company form drawer -->
     <AddNewCompanyDrawer
       v-model:isDrawerOpen="isAddNewCompanyDrawerVisible"
       :company-data="editCompanyData"

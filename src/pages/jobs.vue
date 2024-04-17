@@ -1,24 +1,24 @@
 <script setup>
+// job listing page
+
 import AddJobDrawer from "@/views/apps/user/list/AddJobDrawer.vue";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { toast } from "vue3-toastify";
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import axios from "../axiosConfig";
 import { jobHeaders } from "../utils/dataTableHeaders";
-import { watchEffect } from "vue";
 import { useDebounceFn } from "@vueuse/core";
+import { useJobStore } from "../store/useJob";
 
 const deleteDialog = ref(false);
 const isAddJobDrawerVisible = ref(false);
 const editJobData = ref(null);
 const isEditMode = ref(false);
 const deleteItemId = ref(null);
-const jobList = ref([]);
 const permentDelete = ref(false);
-const loading = ref(false);
-const pagination = ref(null);
 const search = ref("");
 const selectedEmpType = ref(null);
+const jobStore = useJobStore();
 
 // functions for data table start
 const resolveJobStatus = (expiryDate) => {
@@ -45,49 +45,13 @@ const EmploymentOptions = [
   { title: "Remote" },
 ];
 
-//function for fetch data of job
-const fetchData = async (
-  page = 1,
-  search = "",
-  filter = null,
-  perPage = 10
-) => {
-  loading.value = true;
-  try {
-    const token = localStorage.getItem("token");
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        page: page,
-        search: search,
-        per_page: perPage,
-        filter: filter,
-      },
-    };
-
-    const response = await axios.get("jobs/company", config);
-
-    jobList.value = response.data.data.data;
-    pagination.value = response.data.data;
-  } catch (error) {
-    console.error("Failed to fetch job data:", error.message);
-    toast.error("Failed to fetch Job data");
-  }
-  loading.value = false;
-};
-
 //function for fetch data for edit and open drawer
 const openAddJobDrawer = async (jobData) => {
   if (jobData) {
     try {
-      const token = localStorage.getItem("token");
-
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${jobStore.token}`,
           "content-type": "multipart/form-data",
         },
       };
@@ -121,11 +85,9 @@ const closeDelete = () => {
 
 const deleteItemConfirm = async () => {
   try {
-    const token = localStorage.getItem("token");
-
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${jobStore.token}`,
       },
     };
 
@@ -135,7 +97,7 @@ const deleteItemConfirm = async () => {
       config
     );
 
-    fetchData();
+    jobStore.fetchJobData(1, search.value, selectedEmpType.value);
     closeDelete();
     toast.success("Company Deleted Successfully");
   } catch (error) {
@@ -146,13 +108,11 @@ const deleteItemConfirm = async () => {
 
 //function that used by child component on form submit
 const addNewJob = async (jobData) => {
-  loading.value = true;
+  jobStore.loading = true;
   try {
-    const token = localStorage.getItem("token");
-
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${jobStore.token}`,
       },
     };
 
@@ -171,44 +131,35 @@ const addNewJob = async (jobData) => {
       toast.success(response.data.message);
     }
 
-    fetchData();
+    jobStore.fetchJobData(1, search.value, selectedEmpType.value);
 
     isAddJobDrawerVisible.value = false;
   } catch (error) {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  loading.value = false;
+  jobStore.loading = false;
 };
 
 const handleSearch = useDebounceFn(() => {
-  fetchData(1, search.value, selectedEmpType.value);
+  jobStore.fetchJobData(1, search.value, selectedEmpType.value);
 }, 500);
 
-const handlePagination = async (page) => {
-  console.log("Page:", page);
-  await fetchData(page);
+const handlePagination = (page) => {
+  jobStore.fetchJobData(page, search.value, selectedEmpType.value);
 };
 
 const handleFilter = () => {
-  fetchData(1, "", selectedEmpType.value);
+  jobStore.fetchJobData(1, "", selectedEmpType.value);
 };
 
-watchEffect(handleFilter);
-
-onMounted(() => {
-  fetchData();
-});
+watch(selectedEmpType, handleFilter);
 </script>
 
 <template>
   <div>
-    <!-- <Snackbar /> -->
-    <!-- <div v-if="loading" class="d-flex justify-center">
-      <VProgressCircular :size="40" color="primary" indeterminate />
-    </div> -->
     <!-- 👉 Add user button -->
-    <div v-if="pagination">
+    <div v-if="jobStore.pagination">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddJobDrawer(null)">
           Add New Job
@@ -243,36 +194,36 @@ onMounted(() => {
         </VRow>
       </VCardText>
       <VDataTableServer
-        v-model:items-per-page="pagination.per_page"
+        v-model:items-per-page="jobStore.pagination.per_page"
         :headers="jobHeaders"
-        :items="jobList"
-        :items-length="pagination.total"
-        :loading="loading"
+        :items="jobStore.jobList"
+        :items-length="jobStore.pagination.total"
+        :loading="jobStore.loading"
         :search="search"
         item.value="item"
-        :page="pagination.current_page"
+        :page="jobStore.pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- title column -->
         <template #item.title="{ item }">
-          <div class="d-flex align-center">
+          <div class="my-2">
             <div class="d-flex flex-column ms-3">
               <span
                 class="d-block font-weight-medium text--primary text-truncate"
                 >{{ item.raw.title }}</span
               >
             </div>
-          </div>
-          <div>
-            <VChip
-              v-for="(skill, index) in item.raw.required_skills"
-              :key="index"
-              class="mx-1 my-1"
-              size="small"
-              label
-            >
-              {{ skill }}
-            </VChip>
+            <div>
+              <VChip
+                v-for="(skill, index) in item.raw.required_skills"
+                :key="index"
+                class="mx-1 my-1"
+                size="small"
+                label
+              >
+                {{ skill }}
+              </VChip>
+            </div>
           </div>
         </template>
 

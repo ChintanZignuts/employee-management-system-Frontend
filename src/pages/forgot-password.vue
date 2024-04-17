@@ -1,4 +1,8 @@
 <script setup>
+
+// page for forgot password 
+
+//imports
 import { useGenerateImageVariant } from "@core/composable/useGenerateImageVariant";
 import authV2ForgotPasswordIllustrationDark from "@images/pages/auth-v2-forgot-password-illustration-dark.png";
 import authV2ForgotPasswordIllustrationLight from "@images/pages/auth-v2-forgot-password-illustration-light.png";
@@ -18,6 +22,7 @@ const authThemeImg = useGenerateImageVariant(
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark);
 const formRef = ref("");
 
+//call forgot password endpoint and sent email with reset password link to given email
 const handleForgotPassword = async () => {
   try {
     const validate = await formRef.value.validate();
@@ -41,6 +46,7 @@ const handleForgotPassword = async () => {
     toast.error("Server Error");
   }
 };
+
 </script>
 
 <template>

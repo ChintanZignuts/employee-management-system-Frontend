@@ -1,6 +1,8 @@
+// store for get company data on load and company
+
 import axios from "../axiosConfig";
 import { defineStore } from "pinia";
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 
 export const useCompanyStore = defineStore("company", () => {
   const companyOptions = ref([]);
@@ -9,6 +11,7 @@ export const useCompanyStore = defineStore("company", () => {
   const pagination = ref(null);
   const loading = ref(false);
 
+  // function for fetch company option
   const fetchCompanyOptions = async () => {
     try {
       const config = {
@@ -25,6 +28,7 @@ export const useCompanyStore = defineStore("company", () => {
     }
   };
 
+  //function for fetch company data with filter, pagination and searching
   const fetchCompanyData = async (
     page = 1,
     search = "",
@@ -56,7 +60,8 @@ export const useCompanyStore = defineStore("company", () => {
     loading.value = false;
   };
 
-  onMounted(fetchCompanyOptions, fetchCompanyData);
+  fetchCompanyOptions();
+  fetchCompanyData();
 
   return {
     companyOptions,
@@ -65,5 +70,6 @@ export const useCompanyStore = defineStore("company", () => {
     pagination,
     loading,
     fetchCompanyData,
+    fetchCompanyOptions,
   };
 });

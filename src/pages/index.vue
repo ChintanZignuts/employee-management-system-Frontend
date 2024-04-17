@@ -1,4 +1,7 @@
 <script setup>
+
+// dashboard page 
+
 import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue3-toastify'
 import axios from '../axiosConfig'

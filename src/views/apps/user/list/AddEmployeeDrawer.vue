@@ -1,8 +1,12 @@
 <script setup>
+//drawer form for create and
+
 import { emailValidator, requiredValidator } from "@validators";
 import { ref } from "vue";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { useCompanyStore } from "../../../../store/useCompany";
+
+//props
 const props = defineProps({
   isEmployeeDrawerOpen: {
     type: Boolean,
@@ -14,6 +18,8 @@ const props = defineProps({
   },
 });
 
+
+//const
 const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"]);
 const isFormValid = ref(false);
 const refForm = ref();
@@ -28,6 +34,7 @@ const JoiningDate = ref(null);
 const CompanyId = ref(null);
 const companyStore = useCompanyStore();
 
+//function for clear form
 const clearForm = () => {
   refForm.value?.reset();
   DOB.value = "";
@@ -35,11 +42,14 @@ const clearForm = () => {
   refForm.value?.resetValidation();
 };
 
+//function for close drawer
 const closeNavigationDrawer = () => {
   emit("update:isEmployeeDrawerOpen", false);
   clearForm();
 };
 
+
+//watcher for set fields from props data
 watch(
   () => props.employeeData,
   (newValue) => {
@@ -59,6 +69,7 @@ watch(
   }
 );
 
+// function for handle for submission and emit the function 
 const onSubmit = async () => {
   try {
     let validate = await refForm.value?.validate();
@@ -116,14 +127,15 @@ const handleDrawerModelValueUpdate = (val) => {
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
-              <!-- 👉 Full name -->
+              <!-- 👉 First name -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="FirstName"
-                  :rules="[requiredValidator]"
-                  label="First Name"
+                v-model="FirstName"
+                :rules="[requiredValidator]"
+                label="First Name"
                 />
               </VCol>
+              <!-- 👉 Last name -->
               <VCol cols="12">
                 <AppTextField
                   v-model="LastName"
@@ -149,6 +161,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   label="Address"
                 />
               </VCol>
+
               <!-- 👉 City -->
               <VCol cols="12">
                 <AppTextField
@@ -157,27 +170,33 @@ const handleDrawerModelValueUpdate = (val) => {
                   label="City"
                 />
               </VCol>
+
               <!-- 👉 Date of Birth -->
               <VCol cols="12">
                 <AppDateTimePicker
-                  v-model="DOB"
-                  placeholder="YYYY-MM-DD"
-                  :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
-                  label="date of Birth"
+                v-model="DOB"
+                placeholder="YYYY-MM-DD"
+                :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
+                label="date of Birth"
                 />
               </VCol>
+              
+              <!-- 👉 Salary -->
               <VCol cols="12">
                 <AppTextField v-model="Salary" label="Salary" type="number" />
               </VCol>
+              
+              <!-- 👉 Joining date -->
               <VCol cols="12">
                 <AppDateTimePicker
-                  v-model="JoiningDate"
-                  placeholder="YYYY-MM-DD"
-                  :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
-                  label="Joining Date"
+                v-model="JoiningDate"
+                placeholder="YYYY-MM-DD"
+                :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
+                label="Joining Date"
                 />
               </VCol>
-
+              
+              <!-- 👉 Company Name -->
               <VCol cols="12">
                 <AppAutocomplete
                   v-model="CompanyId"
@@ -189,6 +208,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   :disabled="props.employeeData !== null"
                 />
               </VCol>
+              
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
                 <VBtn type="submit" class="me-3"> Submit </VBtn>

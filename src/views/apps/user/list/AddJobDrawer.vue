@@ -1,10 +1,14 @@
 <script setup>
+//drawer form for create and edit job
+
+//imports
 import { requiredValidator } from "@validators";
 import { ref } from "vue";
 import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import { skills } from "../../../../utils/requiredSkills";
 import { useCompanyStore } from "../../../../store/useCompany";
 
+//props
 const props = defineProps({
   isJobDrawerOpen: {
     type: Boolean,
@@ -16,10 +20,11 @@ const props = defineProps({
   },
 });
 
+//emit functions
 const emit = defineEmits(["update:isJobDrawerOpen", "jobData"]);
 
+//const
 const friends = ref(["Sandra Adams", "Britta Holt"]);
-
 const companyOptions = ref([]);
 const isFormValid = ref(false);
 const refForm = ref();
@@ -34,7 +39,16 @@ const RequiredSkills = ref([]);
 const ExpiryDate = ref(null);
 const CompanyId = ref(null);
 const companyStore = useCompanyStore();
+const EmploymentOptions = [
+  { title: "Full-time" },
+  { title: "Part-time" },
+  { title: "Contract" },
+  { title: "Freelance" },
+  { title: "Internship" },
+  { title: "Remote" },
+];
 
+//function for clear form fields
 const clearForm = () => {
   refForm.value?.reset();
   ExpiryDate.value = "";
@@ -42,11 +56,13 @@ const clearForm = () => {
   refForm.value?.resetValidation();
 };
 
+//function for close drawer
 const closeNavigationDrawer = () => {
   emit("update:isJobDrawerOpen", false);
   clearForm();
 };
 
+// watcher for populate field with latest data send from props
 watch(
   () => props.jobData,
   (newValue) => {
@@ -65,22 +81,14 @@ watch(
   }
 );
 
-const EmploymentOptions = [
-  { title: "Full-time" },
-  { title: "Part-time" },
-  { title: "Contract" },
-  { title: "Freelance" },
-  { title: "Internship" },
-  { title: "Remote" },
-];
-
+//function for convert selected range value in string
 const formatExperience = (value) => {
   const start = value[0];
   const end = value[1];
-
   return `${start} years to ${end} years`;
 };
 
+// function that handle form submission and emit the function with form data
 const onSubmit = async () => {
   try {
     let validate = await refForm.value?.validate();
@@ -136,7 +144,7 @@ const handleDrawerModelValueUpdate = (val) => {
         <VCardText>
           <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
-              <!-- 👉 Full name -->
+              <!-- 👉 Job Title -->
               <VCol cols="12">
                 <AppTextField
                   v-model="Title"
@@ -144,6 +152,8 @@ const handleDrawerModelValueUpdate = (val) => {
                   label="Title"
                 />
               </VCol>
+
+              <!-- 👉 Job Description -->
               <VCol cols="12">
                 <AppTextarea
                   v-model="Description"
@@ -154,6 +164,7 @@ const handleDrawerModelValueUpdate = (val) => {
                 />
               </VCol>
 
+              <!-- 👉 Employment Type -->
               <VCol cols="12">
                 <AppAutocomplete
                   v-model="EmploymentType"
@@ -164,9 +175,13 @@ const handleDrawerModelValueUpdate = (val) => {
                   :rules="[requiredValidator]"
                 />
               </VCol>
+
+              <!-- 👉 Salary -->
               <VCol cols="12">
                 <AppTextField v-model="Salary" label="Salary" type="number" />
               </VCol>
+
+              <!-- 👉 skills -->
               <VCol cols="12">
                 <AppAutocomplete
                   v-model="RequiredSkills"
@@ -187,6 +202,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   </template>
                 </AppAutocomplete>
               </VCol>
+
               <!-- 👉 Required Experience -->
               <VCol cols="12">
                 <VRangeSlider
@@ -198,6 +214,8 @@ const handleDrawerModelValueUpdate = (val) => {
                 />
                 Required Experience: {{ formatExperience(RequiredExperience) }}
               </VCol>
+
+              <!-- 👉 Expiry Date -->
               <VCol cols="12">
                 <AppDateTimePicker
                   v-model="ExpiryDate"
@@ -206,6 +224,8 @@ const handleDrawerModelValueUpdate = (val) => {
                   label="Expiry Date"
                 />
               </VCol>
+
+              <!-- 👉 Company Name -->
               <VCol cols="12">
                 <AppAutocomplete
                   v-model="CompanyId"
@@ -217,6 +237,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   :disabled="props.jobData !== null"
                 />
               </VCol>
+
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
                 <VBtn type="submit" class="me-3"> Submit </VBtn>
