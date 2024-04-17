@@ -16,7 +16,7 @@ const editJobData = ref(null);
 const isEditMode = ref(false);
 const deleteItemId = ref(null);
 const permentDelete = ref(false);
-const search = ref("");
+const search = ref(null);
 const selectedEmpType = ref(null);
 const jobStore = useJobStore();
 

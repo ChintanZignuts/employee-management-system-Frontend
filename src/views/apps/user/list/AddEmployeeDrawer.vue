@@ -18,7 +18,6 @@ const props = defineProps({
   },
 });
 
-
 //const
 const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"]);
 const isFormValid = ref(false);
@@ -48,7 +47,6 @@ const closeNavigationDrawer = () => {
   clearForm();
 };
 
-
 //watcher for set fields from props data
 watch(
   () => props.employeeData,
@@ -69,7 +67,7 @@ watch(
   }
 );
 
-// function for handle for submission and emit the function 
+// function for handle for submission and emit the function
 const onSubmit = async () => {
   try {
     let validate = await refForm.value?.validate();
@@ -101,7 +99,6 @@ const onSubmit = async () => {
   }
 };
 
-console.log(companyStore.companyOptions);
 const handleDrawerModelValueUpdate = (val) => {
   emit("update:isEmployeeDrawerOpen", val);
 };
@@ -130,9 +127,9 @@ const handleDrawerModelValueUpdate = (val) => {
               <!-- 👉 First name -->
               <VCol cols="12">
                 <AppTextField
-                v-model="FirstName"
-                :rules="[requiredValidator]"
-                label="First Name"
+                  v-model="FirstName"
+                  :rules="[requiredValidator]"
+                  label="First Name"
                 />
               </VCol>
               <!-- 👉 Last name -->
@@ -174,28 +171,28 @@ const handleDrawerModelValueUpdate = (val) => {
               <!-- 👉 Date of Birth -->
               <VCol cols="12">
                 <AppDateTimePicker
-                v-model="DOB"
-                placeholder="YYYY-MM-DD"
-                :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
-                label="date of Birth"
+                  v-model="DOB"
+                  placeholder="YYYY-MM-DD"
+                  :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
+                  label="date of Birth"
                 />
               </VCol>
-              
+
               <!-- 👉 Salary -->
               <VCol cols="12">
                 <AppTextField v-model="Salary" label="Salary" type="number" />
               </VCol>
-              
+
               <!-- 👉 Joining date -->
               <VCol cols="12">
                 <AppDateTimePicker
-                v-model="JoiningDate"
-                placeholder="YYYY-MM-DD"
-                :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
-                label="Joining Date"
+                  v-model="JoiningDate"
+                  placeholder="YYYY-MM-DD"
+                  :config="{ dateFormat: 'Y-m-d', maxDate: new Date() }"
+                  label="Joining Date"
                 />
               </VCol>
-              
+
               <!-- 👉 Company Name -->
               <VCol cols="12">
                 <AppAutocomplete
@@ -208,7 +205,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   :disabled="props.employeeData !== null"
                 />
               </VCol>
-              
+
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
                 <VBtn type="submit" class="me-3"> Submit </VBtn>
