@@ -19,9 +19,6 @@ export const useEmployeeStore = defineStore("employee", () => {
     loading.value = true;
     try {
       const config = {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
         params: {
           page: page,
           search: search,
@@ -41,11 +38,11 @@ export const useEmployeeStore = defineStore("employee", () => {
     }
     loading.value = false;
   };
-
-  fetchEmployeeData();
+  if (token.value) {
+    fetchEmployeeData();
+  }
 
   return {
-    token,
     employeeList,
     pagination,
     loading,

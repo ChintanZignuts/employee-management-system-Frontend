@@ -20,6 +20,10 @@ const search = ref(null);
 const selectedEmpType = ref(null);
 const jobStore = useJobStore();
 
+//destructuring variables and function from pinia store
+const { jobList, pagination, loading } = storeToRefs(jobStore);
+const { fetchJobData } = jobStore;
+
 // functions for data table start
 const resolveJobStatus = (expiryDate) => {
   const now = new Date();
@@ -49,14 +53,7 @@ const EmploymentOptions = [
 const openAddJobDrawer = async (jobData) => {
   if (jobData) {
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jobStore.token}`,
-          "content-type": "multipart/form-data",
-        },
-      };
-
-      const response = await axios.get(`/job/${jobData.id}`, config);
+      const response = await axios.get(`/job/${jobData.id}`);
 
       editJobData.value = response.data.data;
       if (editJobData.value) {
@@ -85,19 +82,11 @@ const closeDelete = () => {
 
 const deleteItemConfirm = async () => {
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${jobStore.token}`,
-      },
-    };
+    await axios.post(`job/delete/${deleteItemId.value}`, {
+      permanent: permentDelete.value,
+    });
 
-    await axios.post(
-      `job/delete/${deleteItemId.value}`,
-      { permanent: permentDelete.value },
-      config
-    );
-
-    jobStore.fetchJobData(1, search.value, selectedEmpType.value);
+    fetchJobData(1, search.value, selectedEmpType.value);
     closeDelete();
     toast.success("Company Deleted Successfully");
   } catch (error) {
@@ -108,49 +97,49 @@ const deleteItemConfirm = async () => {
 
 //function that used by child component on form submit
 const addNewJob = async (jobData) => {
-  jobStore.loading = true;
+  loading = true;
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${jobStore.token}`,
-      },
-    };
-
     if (isEditMode.value) {
       const response = await axios.post(
         `job/update/${editJobData.value.id}`,
-        jobData,
-        config
+        jobData
       );
 
       console.log("User updated successfully:", response.data);
       toast.success(response.data.message);
     } else {
-      const response = await axios.post("job/create", jobData, config);
+      const response = await axios.post("job/create", jobData);
 
       toast.success(response.data.message);
     }
 
-    jobStore.fetchJobData(1, search.value, selectedEmpType.value);
+    fetchJobData(1, search.value, selectedEmpType.value);
 
     isAddJobDrawerVisible.value = false;
   } catch (error) {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  jobStore.loading = false;
+  loading = false;
 };
 
 const handleSearch = useDebounceFn(() => {
-  jobStore.fetchJobData(1, search.value, selectedEmpType.value);
+  fetchJobData(1, search.value, selectedEmpType.value);
 }, 500);
 
 const handlePagination = (page) => {
-  jobStore.fetchJobData(page, search.value, selectedEmpType.value);
+  fetchJobData(page, search.value, selectedEmpType.value);
 };
 
 const handleFilter = () => {
-  jobStore.fetchJobData(1, "", selectedEmpType.value);
+  fetchJobData(1, "", selectedEmpType.value);
+};
+
+const fetchImage = (url) => {
+  const BASEURL = "http://127.0.0.1:8000/storage/logos/";
+  const image = BASEURL + `${url}`;
+
+  return image;
 };
 
 watch(selectedEmpType, handleFilter);
@@ -159,7 +148,7 @@ watch(selectedEmpType, handleFilter);
 <template>
   <div>
     <!-- 👉 Add user button -->
-    <div v-if="jobStore.pagination">
+    <div v-if="pagination">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddJobDrawer(null)">
           Add New Job
@@ -194,14 +183,14 @@ watch(selectedEmpType, handleFilter);
         </VRow>
       </VCardText>
       <VDataTableServer
-        v-model:items-per-page="jobStore.pagination.per_page"
+        v-model:items-per-page="pagination.per_page"
         :headers="jobHeaders"
-        :items="jobStore.jobList"
-        :items-length="jobStore.pagination.total"
-        :loading="jobStore.loading"
+        :items="jobList"
+        :items-length="pagination.total"
+        :loading="loading"
         :search="search"
         item.value="item"
-        :page="jobStore.pagination.current_page"
+        :page="pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- title column -->
@@ -258,7 +247,7 @@ watch(selectedEmpType, handleFilter);
               start
               :image="
                 item.raw.company.logo_url
-                  ? `http://127.0.0.1:8000/storage/logos/${item.raw.company.logo_url}`
+                  ? fetchImage(item.raw.company.logo_url)
                   : null
               "
             />

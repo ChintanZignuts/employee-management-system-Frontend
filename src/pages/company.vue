@@ -35,7 +35,13 @@ const status = [
 //company store
 const companyStore = useCompanyStore();
 
+//destructuring variables from pinia store
+const { loading, pagination, companyList } = storeToRefs(companyStore);
+
+//destructuring functions from pinia store
+const { fetchCompanyData, fetchCompanyOptions } = companyStore;
 //function convert company status A to Active and I to inactive
+
 const resolveStatusVariant = (status) => {
   if (status === "A")
     return {
@@ -59,11 +65,8 @@ const resolveStatusVariant = (status) => {
 const openAddNewCompanyDrawer = async (companyData) => {
   if (companyData) {
     try {
-      const token = localStorage.getItem("token");
-
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
           "content-type": "multipart/form-data",
         },
       };
@@ -100,21 +103,11 @@ const closeDelete = () => {
 // function that run after confirmation from delete dialog
 const deleteItemConfirm = async () => {
   try {
-    const token = localStorage.getItem("token");
+    await axios.post(`/companies/delete/${deleteItemId.value}`, {
+      forceDelete: permentDelete.value,
+    });
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    await axios.post(
-      `/companies/delete/${deleteItemId.value}`,
-      { forceDelete: permentDelete.value },
-      config
-    );
-
-    companyStore.fetchCompanyData(1, search.value, selectedStatus.value);
+    fetchCompanyData(1, search.value, selectedStatus.value);
     closeDelete();
     toast.success("Company Deleted Successfully");
   } catch (error) {
@@ -125,13 +118,10 @@ const deleteItemConfirm = async () => {
 
 //function that use for both create and edit company data with their admin details
 const addNewCompany = async (userData) => {
-  companyStore.loading = true;
+  loading = true;
   try {
-    const token = localStorage.getItem("token");
-
     const config = {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     };
@@ -152,30 +142,37 @@ const addNewCompany = async (userData) => {
       toast.success(response.data.message);
     }
 
-    await companyStore.fetchCompanyData(1, search.value, selectedStatus.value);
-    await companyStore.fetchCompanyOptions();
+    await fetchCompanyData(1, search.value, selectedStatus.value);
+    await fetchCompanyOptions();
     isAddNewCompanyDrawerVisible.value = false;
   } catch (error) {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  companyStore.loading = false;
+  loading = false;
 };
 
 //handle search of user with debounce effect
 const handleSearch = useDebounceFn(() => {
-  companyStore.fetchCompanyData(1, search.value);
+  fetchCompanyData(1, search.value);
 }, 500);
 
 //handle the pagination
 const handlePagination = (page) => {
   console.log("Page:", page);
-  companyStore.fetchCompanyData(page);
+  fetchCompanyData(page);
 };
 
 //for filter based on company status
 const handleFilter = async () => {
-  companyStore.fetchCompanyData(1, "", selectedStatus.value);
+  fetchCompanyData(1, "", selectedStatus.value);
+};
+
+const fetchImage = (url) => {
+  const BASEURL = "http://127.0.0.1:8000/storage/logos/";
+  const image = BASEURL + `${url}`;
+
+  return image;
 };
 
 watch(selectedStatus, handleFilter);
@@ -184,7 +181,7 @@ watch(selectedStatus, handleFilter);
 <template>
   <div>
     <!-- 👉 Add user button -->
-    <div v-if="companyStore.pagination !== null">
+    <div v-if="pagination !== null">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddNewCompanyDrawer(null)">
           Add New Company
@@ -221,14 +218,14 @@ watch(selectedStatus, handleFilter);
       </VCardText>
       <!-- table for list data  -->
       <VDataTableServer
-        v-model:items-per-page="companyStore.pagination.per_page"
+        v-model:items-per-page="pagination.per_page"
         :headers="companyHeaders"
-        :items="companyStore.companyList"
-        :items-length="companyStore.pagination.total"
-        :loading="companyStore.loading"
+        :items="companyList"
+        :items-length="pagination.total"
+        :loading="loading"
         :search="search"
         item.value="item"
-        :page="companyStore.pagination.current_page"
+        :page="pagination.current_page"
         @update:page="handlePagination"
       >
         <!--👉 Name column -->
@@ -243,7 +240,7 @@ watch(selectedStatus, handleFilter);
             >
               <VImg
                 v-if="item.raw.logo_url"
-                :src="`http://127.0.0.1:8000/storage/logos/${item.raw.logo_url}`"
+                :src="fetchImage(item.raw.logo_url)"
               />
               <span v-else>{{ avatarText(item.raw.name) }}</span>
             </VAvatar>

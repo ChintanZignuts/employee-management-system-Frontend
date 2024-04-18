@@ -25,6 +25,11 @@ const selectedCompany = ref(null);
 const companyStore = useCompanyStore();
 const employeeStore = useEmployeeStore();
 
+//destructuring variables and function from pinia store
+const { companyOptions } = storeToRefs(companyStore);
+const { loading, employeeList, pagination } = storeToRefs(employeeStore);
+const { fetchEmployeeData } = employeeStore;
+
 const getTypeFullType = (type) => {
   if (type === "CA") return "Company Admin";
   else if (type === "E") return "Employee";
@@ -40,25 +45,15 @@ const deleteItem = (id) => {
 // Function to confirm deletion of an employee
 const deleteItemConfirm = async () => {
   try {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${employeeStore.token}`,
-      },
-    };
+    await axios.post(`/employee/delete/${deleteItemId.value}`, {
+      permanent: permentDelete.value,
+    });
 
-    if (employeeStore.token) {
-      await axios.post(
-        `/employee/delete/${deleteItemId.value}`,
-        { permanent: permentDelete.value },
-        config
-      );
+    // Remove the deleted employee from the list
 
-      // Remove the deleted employee from the list
-
-      closeDelete();
-      employeeStore.fetchEmployeeData(1, search.value, selectedCompany.value);
-      toast.success("Employee Deleted");
-    }
+    closeDelete();
+    fetchEmployeeData(1, search.value, selectedCompany.value);
+    toast.success("Employee Deleted");
 
     // Close the delete dialog
   } catch (error) {
@@ -78,12 +73,6 @@ const closeDelete = () => {
 const openAddEmployeeDrawer = async (employeeId) => {
   if (employeeId) {
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${employeeStore.token}`,
-        },
-      };
-
       const response = await axios.get(`employee/${employeeId}`, config);
 
       editEmployeeData.value = response.data.data;
@@ -105,35 +94,24 @@ const openAddEmployeeDrawer = async (employeeId) => {
 //function for create and edit employee used by addEmployeeDrawer component
 const addNewEmployee = async (employeeData) => {
   try {
-    employeeStore.loading = true;
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${employeeStore.token}`,
-      },
-    };
+    loading = true;
 
     if (isEditMode.value) {
       const response = await axios.post(
         `employee/update/${editEmployeeData.value.id}`,
-        employeeData,
-        config
+        employeeData
       );
 
       console.log("Employee updated successfully:", response.data);
       toast.success("Employee updated successfully");
     } else {
-      const response = await axios.post(
-        "employee/create",
-        employeeData,
-        config
-      );
+      const response = await axios.post("employee/create", employeeData);
 
       console.log("Employee created successfully:", response.data);
       toast.success("Employee created successfully");
     }
 
-    employeeStore.fetchEmployeeData();
+    fetchEmployeeData();
 
     isAddEmployeeDrawerVisible.value = false;
   } catch (error) {
@@ -141,22 +119,22 @@ const addNewEmployee = async (employeeData) => {
     toast.error(error.message);
   }
 
-  employeeStore.loading = false;
+  loading = false;
 };
 
 //for change page and make api call
 const handlePagination = (page) => {
-  employeeStore.fetchEmployeeData(page, search.value, selectedCompany.value);
+  fetchEmployeeData(page, search.value, selectedCompany.value);
 };
 
 //for searching
 const handleSearch = useDebounceFn(() => {
-  employeeStore.fetchEmployeeData(1, search.value, selectedCompany.value);
+  fetchEmployeeData(1, search.value, selectedCompany.value);
 }, 500);
 
 //for filtering
 const handleFilter = () => {
-  employeeStore.fetchEmployeeData(1, "", selectedCompany.value);
+  fetchEmployeeData(1, "", selectedCompany.value);
 };
 
 //watcher for detect change in selectedCompany and run function
@@ -166,7 +144,7 @@ watch(selectedCompany, handleFilter);
 <template>
   <div>
     <!-- 👉 add new employee btn  -->
-    <div v-if="employeeStore.pagination">
+    <div v-if="pagination">
       <div class="d-flex justify-end ma-3">
         <VBtn prepend-icon="tabler-plus" @click="openAddEmployeeDrawer(null)">
           Add New Employee
@@ -190,14 +168,14 @@ watch(selectedCompany, handleFilter);
           </VCol>
 
           <!-- 👉 select filter field  -->
-          <VCol cols="12" md="4" v-if="companyStore.companyOptions.length > 1">
+          <VCol cols="12" md="4" v-if="companyOptions.length > 1">
             <AppSelect
               v-model="selectedCompany"
               placeholder="Filter Employee by Company"
               clearable
               clear-icon="tabler-x"
               single-line
-              :items="companyStore.companyOptions"
+              :items="companyOptions"
               item-title="name"
               item-value="id"
             />
@@ -207,13 +185,13 @@ watch(selectedCompany, handleFilter);
 
       <!-- 👉 Employee table -->
       <VDataTableServer
-        v-model:items-per-page="employeeStore.pagination.per_page"
+        v-model:items-per-page="pagination.per_page"
         :headers="employeeHeaders"
-        :items="employeeStore.employeeList"
-        :items-length="employeeStore.pagination.total"
-        :loading="employeeStore.loading"
+        :items="employeeList"
+        :items-length="pagination.total"
+        :loading="loading"
         item.value="employee"
-        :page="employeeStore.pagination.current_page"
+        :page="pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- 👉  Employee Name column -->

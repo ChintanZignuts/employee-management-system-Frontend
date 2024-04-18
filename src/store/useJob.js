@@ -19,9 +19,6 @@ export const useJobStore = defineStore("job", () => {
     loading.value = true;
     try {
       const config = {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
         params: {
           page: page,
           search: search,
@@ -41,10 +38,10 @@ export const useJobStore = defineStore("job", () => {
     }
     loading.value = false;
   };
-
-  fetchJobData();
+  if (token.value) {
+    fetchJobData();
+  }
   return {
-    token,
     jobList,
     pagination,
     loading,

@@ -14,13 +14,7 @@ export const useCompanyStore = defineStore("company", () => {
   // function for fetch company option
   const fetchCompanyOptions = async () => {
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      };
-
-      const response = await axios.get("employee/companies/option", config);
+      const response = await axios.get("employee/companies/option");
 
       companyOptions.value = response.data;
     } catch (error) {
@@ -38,9 +32,6 @@ export const useCompanyStore = defineStore("company", () => {
     loading.value = true;
     try {
       const config = {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
         params: {
           page: page,
           search: search,
@@ -60,12 +51,13 @@ export const useCompanyStore = defineStore("company", () => {
     loading.value = false;
   };
 
-  fetchCompanyOptions();
-  fetchCompanyData();
+  if (token.value) {
+    fetchCompanyOptions();
+    fetchCompanyData();
+  }
 
   return {
     companyOptions,
-    token,
     companyList,
     pagination,
     loading,
