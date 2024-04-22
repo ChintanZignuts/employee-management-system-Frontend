@@ -25,7 +25,6 @@ const emit = defineEmits(["update:isJobDrawerOpen", "jobData"]);
 
 //const
 const friends = ref(["Sandra Adams", "Britta Holt"]);
-const companyOptions = ref([]);
 const isFormValid = ref(false);
 const refForm = ref();
 
@@ -48,6 +47,7 @@ const EmploymentOptions = [
   { title: "Remote" },
 ];
 
+const { companyOptions } = storeToRefs(companyStore);
 //function for clear form fields
 const clearForm = () => {
   refForm.value?.reset();
@@ -230,7 +230,7 @@ const handleDrawerModelValueUpdate = (val) => {
                 <AppAutocomplete
                   v-model="CompanyId"
                   label="Company"
-                  :items="companyStore.companyOptions"
+                  :items="companyOptions"
                   item-title="name"
                   item-value="id"
                   :rules="[requiredValidator]"

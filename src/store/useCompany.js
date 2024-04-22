@@ -16,9 +16,12 @@ export const useCompanyStore = defineStore("company", () => {
     try {
       const response = await axios.get("employee/companies/option");
 
-      companyOptions.value = response.data;
+      companyOptions.value = response.data.data;
     } catch (error) {
-      console.error("Error fetching company options:", error);
+      console.error(
+        "Error fetching company options:",
+        error.response.data.message
+      );
     }
   };
 

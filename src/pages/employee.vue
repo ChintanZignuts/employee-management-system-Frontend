@@ -35,7 +35,6 @@ const getTypeFullType = (type) => {
   else if (type === "E") return "Employee";
   else return "Unknown";
 };
-
 // Function to delete an employee
 const deleteItem = (id) => {
   deleteItemId.value = id;
@@ -73,9 +72,10 @@ const closeDelete = () => {
 const openAddEmployeeDrawer = async (employeeId) => {
   if (employeeId) {
     try {
-      const response = await axios.get(`employee/${employeeId}`, config);
+      const response = await axios.get(`employee/${employeeId}`);
 
       editEmployeeData.value = response.data.data;
+
       if (editEmployeeData.value) {
         isAddEmployeeDrawerVisible.value = true;
         isEditMode.value = true;
@@ -94,7 +94,7 @@ const openAddEmployeeDrawer = async (employeeId) => {
 //function for create and edit employee used by addEmployeeDrawer component
 const addNewEmployee = async (employeeData) => {
   try {
-    loading = true;
+    loading.value = true;
 
     if (isEditMode.value) {
       const response = await axios.post(
@@ -107,7 +107,6 @@ const addNewEmployee = async (employeeData) => {
     } else {
       const response = await axios.post("employee/create", employeeData);
 
-      console.log("Employee created successfully:", response.data);
       toast.success("Employee created successfully");
     }
 
@@ -119,7 +118,7 @@ const addNewEmployee = async (employeeData) => {
     toast.error(error.message);
   }
 
-  loading = false;
+  loading.value = false;
 };
 
 //for change page and make api call

@@ -28,6 +28,7 @@ const { fetchJobData } = jobStore;
 const resolveJobStatus = (expiryDate) => {
   const now = new Date();
   const expirationDate = new Date(expiryDate);
+
   if (!expiryDate)
     return {
       color: "success",
@@ -97,7 +98,7 @@ const deleteItemConfirm = async () => {
 
 //function that used by child component on form submit
 const addNewJob = async (jobData) => {
-  loading = true;
+  loading.value = true;
   try {
     if (isEditMode.value) {
       const response = await axios.post(
@@ -120,7 +121,7 @@ const addNewJob = async (jobData) => {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  loading = false;
+  loading.value = false;
 };
 
 const handleSearch = useDebounceFn(() => {
@@ -223,12 +224,12 @@ watch(selectedEmpType, handleFilter);
 
         <template #item.status="{ item }">
           <VChip
-            :color="resolveJobStatus(item.expiry_date).color"
+            :color="resolveJobStatus(item.raw.expiry_date).color"
             size="small"
             label
             class="text-capitalize"
           >
-            {{ resolveJobStatus(item.expiry_date).text }}
+            {{ resolveJobStatus(item.raw.expiry_date).text }}
           </VChip>
         </template>
         <template #item.posted="{ item }">

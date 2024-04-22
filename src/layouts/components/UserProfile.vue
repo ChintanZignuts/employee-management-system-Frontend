@@ -22,9 +22,9 @@ const fetchUserData = async () => {
       },
     };
 
-    const response = await axios.get("/user", config);
+    const response = await axios.get("auth/user", config);
 
-    userData.value = response.data.user;
+    userData.value = response.data.data.user;
   } catch (error) {
     console.error("Failed to fetch user data:", error.message);
     toast.error(error.message);
@@ -33,25 +33,13 @@ const fetchUserData = async () => {
 
 const handleLogout = async () => {
   try {
-    const token = localStorage.getItem("token");
+    const response = await axios.post("auth/logout", null);
 
-    if (token) {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+    if (response.status === 200) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("type");
 
-      const response = await axios.post("/logout", null, config);
-
-      if (response.status === 200) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("type");
-
-        router.push("/login");
-      }
-    } else {
-      console.error("Token not found in localStorage");
+      router.push("/login");
     }
   } catch (error) {
     console.error("Logout failed:", error);

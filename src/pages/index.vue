@@ -1,80 +1,78 @@
 <script setup>
+// dashboard page
 
-// dashboard page 
+import { computed, onMounted, ref } from "vue";
+import { toast } from "vue3-toastify";
+import axios from "../axiosConfig";
 
-import { computed, onMounted, ref } from 'vue'
-import { toast } from 'vue3-toastify'
-import axios from '../axiosConfig'
-
-const userData = ref(null)
-const isLoading = ref(false)
-const error = ref(null)
+const userData = ref(null);
+const isLoading = ref(false);
+const error = ref(null);
 
 const fetchData = async () => {
   try {
-    const token = localStorage.getItem('token')
-    
+    const token = localStorage.getItem("token");
+
     // Check if token is available
     if (!token) {
-      throw new Error('No token available')
+      throw new Error("No token available");
     }
 
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    };
 
-    isLoading.value = true
+    isLoading.value = true;
 
-    const response = await axios.get('/stats', config)
+    const response = await axios.get("/stats", config);
 
-    userData.value = response.data
-    
+    userData.value = response.data.data;
   } catch (err) {
-    error.value = err.message
-    toast.error(error.value)
+    error.value = error.response.data.message;
+    toast.error(error.response.data.message);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const userListMeta = computed(() => {
   return [
     {
-      icon: 'tabler-user',
-      color: 'primary',
-      title: 'Users',
-      stats: userData.value ? userData.value.user_count : 'N/A',
-      subtitle: 'Total Users on over platform',
+      icon: "tabler-user",
+      color: "primary",
+      title: "Users",
+      stats: userData.value ? userData.value.user_count : "N/A",
+      subtitle: "Total Users on over platform",
     },
     {
-      icon: 'tabler-users-group',
-      color: 'error',
-      title: 'Total employee',
-      stats: userData.value ? userData.value.employee_count : 'N/A',
-      subtitle: 'Company employee and Company Admin',
+      icon: "tabler-users-group",
+      color: "error",
+      title: "Total employee",
+      stats: userData.value ? userData.value.employee_count : "N/A",
+      subtitle: "Company employee and Company Admin",
     },
     {
-      icon: 'tabler-building-estate',
-      color: 'success',
-      title: 'Total company',
-      stats: userData.value ? userData.value.company_count : 'N/A',
-      subtitle: 'Number of Company Associated with Us',
+      icon: "tabler-building-estate",
+      color: "success",
+      title: "Total company",
+      stats: userData.value ? userData.value.company_count : "N/A",
+      subtitle: "Number of Company Associated with Us",
     },
     {
-      icon: 'tabler-briefcase',
-      color: 'warning',
-      title: 'Total available Job',
-      stats: userData.value ? userData.value.job_count : 'N/A',
-      subtitle: 'Number of job opening currently active',
+      icon: "tabler-briefcase",
+      color: "warning",
+      title: "Total available Job",
+      stats: userData.value ? userData.value.job_count : "N/A",
+      subtitle: "Number of job opening currently active",
     },
-  ]
-})
+  ];
+});
 
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 </script>
 
 <template>
@@ -111,5 +109,3 @@ onMounted(() => {
     </VRow>
   </div>
 </template>
-
-

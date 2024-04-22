@@ -11,6 +11,7 @@ import axios from "../axiosConfig";
 import { companyHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn } from "@vueuse/core";
 import { useCompanyStore } from "../store/useCompany";
+import { useEmployeeStore } from "../store/useEmployee";
 
 //constants and ref
 const deleteDialog = ref(false);
@@ -34,9 +35,11 @@ const status = [
 
 //company store
 const companyStore = useCompanyStore();
+const employeeStore = useEmployeeStore();
 
 //destructuring variables from pinia store
 const { loading, pagination, companyList } = storeToRefs(companyStore);
+const { fetchEmployeeData } = employeeStore;
 
 //destructuring functions from pinia store
 const { fetchCompanyData, fetchCompanyOptions } = companyStore;
@@ -108,6 +111,7 @@ const deleteItemConfirm = async () => {
     });
 
     fetchCompanyData(1, search.value, selectedStatus.value);
+    fetchEmployeeData();
     closeDelete();
     toast.success("Company Deleted Successfully");
   } catch (error) {
@@ -118,7 +122,7 @@ const deleteItemConfirm = async () => {
 
 //function that use for both create and edit company data with their admin details
 const addNewCompany = async (userData) => {
-  loading = true;
+  loading.value = true;
   try {
     const config = {
       headers: {
@@ -133,23 +137,22 @@ const addNewCompany = async (userData) => {
         config
       );
 
-      console.log("User updated successfully:", response.data);
       toast.success(response.data.message);
     } else {
       const response = await axios.post("companies/create", userData, config);
 
-      console.log("User created successfully:", response.data);
       toast.success(response.data.message);
     }
 
     await fetchCompanyData(1, search.value, selectedStatus.value);
     await fetchCompanyOptions();
+    await fetchEmployeeData();
     isAddNewCompanyDrawerVisible.value = false;
   } catch (error) {
     console.error("Failed to update or create user:", error.message);
     toast.error(error.message);
   }
-  loading = false;
+  loading.value = false;
 };
 
 //handle search of user with debounce effect

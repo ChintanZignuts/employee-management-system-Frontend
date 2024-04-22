@@ -22,31 +22,18 @@ const isCurrentPasswordVisible = ref(false);
 
 const handleResetPassword = async () => {
   try {
-    const token = localStorage.getItem("token");
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
     const validate = await formRef.value?.validate();
     if (validate.valid) {
-      const response = await axios.post(
-        "/change-password",
-        {
-          old_password: form.value.oldPassword,
-          password: form.value.newPassword,
-          password_confirmation: form.value.confirmPassword,
-        },
-        config
-      );
+      const response = await axios.post("auth/change-password", {
+        old_password: form.value.oldPassword,
+        password: form.value.newPassword,
+        password_confirmation: form.value.confirmPassword,
+      });
 
       toast(response.data.message);
-      console.log(response.data); // Log the response or handle success
     }
   } catch (error) {
-    console.error(error.response.data);
+    console.error(error.response.data.massage);
     toast(error.response.data.message);
   }
 };

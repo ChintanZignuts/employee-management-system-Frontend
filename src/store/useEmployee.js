@@ -27,8 +27,7 @@ export const useEmployeeStore = defineStore("employee", () => {
         },
       };
       if (token.value) {
-        const response = await axios.get("/allemployee", config);
-
+        const response = await axios.get("employee", config);
         employeeList.value = response.data.data.data;
         pagination.value = response.data.data;
       }

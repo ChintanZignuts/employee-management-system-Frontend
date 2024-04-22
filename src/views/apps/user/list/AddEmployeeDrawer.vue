@@ -33,6 +33,7 @@ const JoiningDate = ref(null);
 const CompanyId = ref(null);
 const companyStore = useCompanyStore();
 
+const { companyOptions } = storeToRefs(companyStore);
 //function for clear form
 const clearForm = () => {
   refForm.value?.reset();
@@ -198,7 +199,7 @@ const handleDrawerModelValueUpdate = (val) => {
                 <AppAutocomplete
                   v-model="CompanyId"
                   label="Company"
-                  :items="companyStore.companyOptions"
+                  :items="companyOptions"
                   item-title="name"
                   item-value="id"
                   :rules="[requiredValidator]"

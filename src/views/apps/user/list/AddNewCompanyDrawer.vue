@@ -100,7 +100,6 @@ const onSubmit = async () => {
       if (LogoUrl.value && LogoUrl.value[0]) {
         formData.append("logo", LogoUrl.value[0]);
       }
-
       // Append company data to form data
       formData.append("name", CompanyName.value);
       formData.append("company_email", CompanyEmail.value);
@@ -120,7 +119,7 @@ const onSubmit = async () => {
       if (!props.companyData) {
         formData.append("admin[email]", AdminEmail.value);
       }
-
+      console.log(formData);
       emit("userData", formData);
 
       refForm.value?.resetValidation();

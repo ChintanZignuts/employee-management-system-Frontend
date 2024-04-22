@@ -43,15 +43,18 @@ const handleSubmit = async () => {
       password: password.value,
     };
 
-    const response = await axios.post("/login", payload);
+    const response = await axios.post("auth/login", payload);
 
-    if (response.data.user.type === "SA" || response.data.user.type === "CA") {
-      companyStore.token = response.data.token;
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("type", response.data.user.type);
+    if (
+      response.data.data.user.type === "SA" ||
+      response.data.data.user.type === "CA"
+    ) {
+      companyStore.token = response.data.data.token;
+      localStorage.setItem("token", response.data.data.token);
+      localStorage.setItem("type", response.data.data.user.type);
 
       router.push("/");
-      toast.success("Welcome");
+      toast.success(response.data.data.message);
     } else {
       errorMessage.value =
         "currently only super admin and company admin login to this page other functionality in progress...🙂  ";
@@ -60,7 +63,7 @@ const handleSubmit = async () => {
     console.log("error", error.response.data.message);
     console.error("API call failed:", error);
     errorMessage.value = error.response.data.message;
-    toast.error(errorMessage.value);
+    toast.error(error.response.data.message);
   }
 };
 </script>
