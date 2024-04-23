@@ -29,7 +29,7 @@ const resolveJobStatus = (expiryDate) => {
   const now = new Date();
   const expirationDate = new Date(expiryDate);
 
-  if (!expiryDate)
+  if (!expiryDate || now <= expirationDate)
     return {
       color: "success",
       text: "Active",
