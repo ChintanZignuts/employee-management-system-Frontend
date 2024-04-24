@@ -2,7 +2,7 @@
 
 import axios from "../axiosConfig";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 export const useCompanyStore = defineStore("company", () => {
   const companyOptions = ref([]);
@@ -54,10 +54,12 @@ export const useCompanyStore = defineStore("company", () => {
     loading.value = false;
   };
 
-  if (token.value) {
-    fetchCompanyOptions();
-    fetchCompanyData();
-  }
+  onMounted(async () => {
+    if (token.value) {
+      await fetchCompanyData();
+      await fetchCompanyOptions();
+    }
+  });
 
   return {
     companyOptions,

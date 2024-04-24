@@ -2,7 +2,7 @@
 
 import axios from "../axiosConfig";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 export const useEmployeeStore = defineStore("employee", () => {
   const token = ref(localStorage.getItem("token"));
@@ -37,10 +37,12 @@ export const useEmployeeStore = defineStore("employee", () => {
     }
     loading.value = false;
   };
-  if (token.value) {
-    fetchEmployeeData();
-  }
 
+  onMounted(() => {
+    if (token.value) {
+      fetchEmployeeData();
+    }
+  });
   return {
     employeeList,
     pagination,

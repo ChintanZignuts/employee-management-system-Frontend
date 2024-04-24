@@ -13,7 +13,6 @@ import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import { VForm } from "vuetify/components/VForm";
 import axios from "../axiosConfig";
-import { useCompanyStore } from "../store/useCompany";
 
 const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationLight,
@@ -30,7 +29,6 @@ const refVForm = ref();
 const email = ref("");
 const password = ref("");
 const errorMessage = ref("");
-const companyStore = useCompanyStore();
 
 const handleSubmit = async () => {
   try {
@@ -49,7 +47,6 @@ const handleSubmit = async () => {
       response.data.data.user.type === "SA" ||
       response.data.data.user.type === "CA"
     ) {
-      companyStore.token = response.data.data.token;
       localStorage.setItem("token", response.data.data.token);
       localStorage.setItem("type", response.data.data.user.type);
 

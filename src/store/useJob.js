@@ -2,6 +2,7 @@
 
 import axios from "../axiosConfig";
 import { defineStore } from "pinia";
+import { onMounted } from "vue";
 import { ref } from "vue";
 
 export const useJobStore = defineStore("job", () => {
@@ -38,9 +39,13 @@ export const useJobStore = defineStore("job", () => {
     }
     loading.value = false;
   };
-  if (token.value) {
-    fetchJobData();
-  }
+
+  onMounted(() => {
+    if (token.value) {
+      fetchJobData();
+    }
+  });
+
   return {
     jobList,
     pagination,
