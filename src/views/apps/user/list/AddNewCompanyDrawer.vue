@@ -198,6 +198,8 @@ const handleDrawerModelValueUpdate = (val) => {
                 <VFileInput
                   v-model="LogoUrl"
                   label="Upload logo"
+                  accept="image/*"
+                  clearable
                   prepend-icon="tabler-camera"
                 />
               </VCol>
