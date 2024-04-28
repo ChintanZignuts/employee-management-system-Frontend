@@ -85,7 +85,7 @@ onMounted(() => {
         sm="6"
         lg="3"
       >
-        <VCard>
+        <VCard class="h-100">
           <VCardText class="d-flex justify-space-between">
             <div>
               <span>{{ meta.title }}</span>

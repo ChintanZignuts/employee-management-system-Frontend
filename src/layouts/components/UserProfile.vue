@@ -26,8 +26,13 @@ const fetchUserData = async () => {
 
     userData.value = response.data.data.user;
   } catch (error) {
-    console.error("Failed to fetch user data:", error.message);
+    console.error("Failed to fetch user data:", error.response.status);
     toast.error(error.message);
+    if (error.response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("type");
+      router.push("/login");
+    }
   }
 };
 
