@@ -11,12 +11,13 @@ export const useJobApplicationStore = defineStore("jobApplication", () => {
   const pagination = ref(null);
   const loading = ref(false);
 
-  const fetchJobApplicationData = async (page = 1) => {
+  const fetchJobApplicationData = async (page = 1, perPage = 10) => {
     loading.value = true;
     try {
       const config = {
         params: {
           page: page,
+          per_page: perPage,
         },
       };
       if (token.value) {

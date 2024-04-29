@@ -11,7 +11,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { useJobApplicationStore } from "../store/useJobApplication";
 
 const deleteDialog = ref(false);
-const isAddJobDrawerVisible = ref(false);
+const isAddJobApplicationDrawerVisible = ref(false);
 const editJobApplicationData = ref(null);
 const deleteItemId = ref(null);
 const permentDelete = ref(false);
@@ -22,27 +22,76 @@ const { jobApplicationList, loading, pagination } =
   storeToRefs(jobApplicationStore);
 const { fetchJobApplicationData } = jobApplicationStore;
 
-//function for fetch data for edit and open drawer
-const openEditJobApplicationDrawer = async (jobData) => {
-  if (jobData) {
-    try {
-      const response = await axios.get(`/job/${jobData.id}`);
+const getStatusDisplay = (statusCode) => {
+  let status = "";
+  let color = "";
 
-      editJobData.value = response.data.data;
-      if (editJobData.value) {
-        isEditMode.value = true;
-        isAddJobDrawerVisible.value = true;
+  switch (statusCode) {
+    case "P":
+      status = "Pending";
+      color = "error";
+      break;
+    case "A":
+      status = "Approved";
+      color = "primary";
+      break;
+    case "R":
+      status = "Rejected";
+      color = "success";
+      break;
+    default:
+      status = "Unknown";
+      color = "success";
+  }
+
+  return { status, color };
+};
+
+//function for fetch data for edit and open drawer
+const openEditJobApplicationDrawer = async (jobApplicationData) => {
+  if (jobApplicationData) {
+    try {
+      const response = await axios.get(
+        `job_applications/show/${jobApplicationData.id}`
+      );
+
+      editJobApplicationData.value = response.data.data;
+      if (editJobApplicationData.value) {
+        isAddJobApplicationDrawerVisible.value = true;
       }
     } catch (error) {
-      console.error("Failed to fetch company details:", error.message);
-      toast.error("Failed to fetch company data");
+      console.error("Failed to fetch Job Application details:", error.message);
+      toast.error("Failed to fetch Job Application data");
     }
   } else {
-    editJobData.value = null;
-    isEditMode.value = false;
-    isAddJobDrawerVisible.value = true;
+    editJobApplicationData.value = null;
+    isAddJobApplicationDrawerVisible.value = true;
   }
 };
+
+//function that used by child component on form submit
+const EditJobApplication = async (jobApplicationData) => {
+  loading.value = true;
+  try {
+    const response = await axios.post(
+      `job_application/update/${editJobApplicationData.value.id}`,
+      jobApplicationData
+    );
+
+    console.log("Job Application updated successfully:", response.data);
+    toast.success(response.data.message);
+
+    fetchJobApplicationData(1);
+
+    isAddJobApplicationDrawerVisible.value = false;
+  } catch (error) {
+    console.error("Failed to update or create Job Application:", error.message);
+    toast.error(error.message);
+  }
+  loading.value = false;
+};
+
+//functions for delete job applications
 
 const deleteItem = (item) => {
   deleteItemId.value = item;
@@ -55,45 +104,17 @@ const closeDelete = () => {
 
 const deleteItemConfirm = async () => {
   try {
-    await axios.post(`job/delete/${deleteItemId.value}`, {
+    await axios.post(`job_application/delete/${deleteItemId.value}`, {
       permanent: permentDelete.value,
     });
 
-    fetchJobData(1, search.value, selectedEmpType.value);
+    fetchJobApplicationData(1);
     closeDelete();
-    toast.success("Company Deleted Successfully");
+    toast.success("Application Deleted Successfully");
   } catch (error) {
-    console.error("Failed to delete company:", error.message);
+    console.error("Failed to delete Application:", error.message);
     toast.error(error.message);
   }
-};
-
-//function that used by child component on form submit
-const EditJobApplication = async (jobData) => {
-  loading.value = true;
-  try {
-    if (isEditMode.value) {
-      const response = await axios.post(
-        `job/update/${editJobData.value.id}`,
-        jobData
-      );
-
-      console.log("User updated successfully:", response.data);
-      toast.success(response.data.message);
-    } else {
-      const response = await axios.post("job/create", jobData);
-
-      toast.success(response.data.message);
-    }
-
-    fetchJobData(1, search.value, selectedEmpType.value);
-
-    isAddJobDrawerVisible.value = false;
-  } catch (error) {
-    console.error("Failed to update or create user:", error.message);
-    toast.error(error.message);
-  }
-  loading.value = false;
 };
 
 const handlePagination = (page) => {
@@ -114,74 +135,56 @@ const fetchResumeUrl = (url) => {
     <div v-if="pagination">
       <VDataTableServer
         v-model:items-per-page="pagination.per_page"
-        :headers="jobHeaders"
-        :items="jobList"
+        :headers="jobApplicationHeaders"
+        :items="jobApplicationList"
         :items-length="pagination.total"
         :loading="loading"
-        :search="search"
         item.value="item"
         :page="pagination.current_page"
         @update:page="handlePagination"
       >
         <!-- title column -->
-        <template #item.title="{ item }">
+        <template #item.name="{ item }">
           <div class="my-2">
             <div class="d-flex flex-column ms-3">
               <span
                 class="d-block font-weight-medium text--primary text-truncate"
-                >{{ item.raw.title }}</span
+                >{{ item.raw.user.first_name }}</span
               >
-            </div>
-            <div>
-              <VChip
-                v-for="(skill, index) in item.raw.required_skills"
-                :key="index"
-                class="mx-1 my-1"
-                size="small"
-                label
-              >
-                {{ skill }}
-              </VChip>
             </div>
           </div>
         </template>
 
         <!-- description column -->
-        <template #item.description="{ item }">
-          <span>{{ item.raw.description }}</span>
+        <template #item.resume="{ item }">
+          <a :href="fetchResumeUrl(item.raw.resume)" target="_blank">
+            View Resume
+          </a>
+        </template>
+        <template #item.title="{ item }">
+          <div class="d-flex flex-column ms-3">
+            <span
+              class="d-block font-weight-medium text--primary text-truncate"
+              >{{ item.raw.job.title }}</span
+            >
+          </div>
         </template>
 
         <template #item.status="{ item }">
           <VChip
-            :color="resolveJobStatus(item.raw.expiry_date).color"
             size="small"
             label
             class="text-capitalize"
+            :color="getStatusDisplay(item.raw.status).color"
           >
-            {{ resolveJobStatus(item.raw.expiry_date).text }}
+            {{ getStatusDisplay(item.raw.status).status }}
           </VChip>
-        </template>
-        <template #item.posted="{ item }">
-          <span>{{ item.raw.posted_date }}</span>
         </template>
 
         <!-- company name column -->
-        <template #item.employment_type="{ item }">
+        <template #item.application_date="{ item }">
           <VChip size="small" label class="text-capitalize">
-            {{ item.raw.employment_type }}
-          </VChip>
-        </template>
-        <template #item.name="{ item }">
-          <VChip pill>
-            <VAvatar
-              start
-              :image="
-                item.raw.company.logo_url
-                  ? fetchImage(item.raw.company.logo_url)
-                  : null
-              "
-            />
-            <span>{{ item.raw.company.name }}</span>
+            {{ item.raw.application_date }}
           </VChip>
         </template>
 
@@ -190,7 +193,7 @@ const fetchResumeUrl = (url) => {
         <!-- Actions column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
-            <IconBtn @click="openAddJobDrawer(item.raw)">
+            <IconBtn @click="openEditJobApplicationDrawer(item.raw)">
               <VIcon icon="mdi-pencil-outline" />
             </IconBtn>
             <IconBtn @click="deleteItem(item.raw.id)">
@@ -221,10 +224,10 @@ const fetchResumeUrl = (url) => {
         </VCardActions>
       </VCard>
     </VDialog>
-    <AddJobDrawer
-      v-model:isJobDrawerOpen="isAddJobDrawerVisible"
-      :job-data="editJobData"
-      @job-data="addNewJob"
+    <EditJobApplicationDrawer
+      v-model:isJobApplicationDrawerOpen="isAddJobApplicationDrawerVisible"
+      :job-application-data="editJobApplicationData"
+      @jobApplicationData="EditJobApplication"
     />
   </div>
 </template>

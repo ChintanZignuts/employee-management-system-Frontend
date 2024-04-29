@@ -99,7 +99,7 @@ export const jobApplicationHeaders = [
     sortable: false,
   },
   {
-    title: " Resume",
+    title: "Resume",
     key: "resume",
   },
   {
