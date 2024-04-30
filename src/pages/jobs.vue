@@ -142,6 +142,21 @@ const handleFilter = () => {
   fetchJobData(1, "", selectedEmpType.value);
 };
 
+const truncateDescription = (description) => {
+  // Split the description into an array of words
+  const words = description.split(" ");
+
+  // Slice the array to get only the first 8 words
+  const truncatedDescription = words.slice(0, 8).join(" ");
+
+  // Add ellipsis if the original description is longer than 8 words
+  if (words.length > 8) {
+    return truncatedDescription + "...";
+  } else {
+    return truncatedDescription;
+  }
+};
+
 //return backend image url
 const fetchImage = (url) => {
   const BASEURL = "http://127.0.0.1:8000/storage/logos/";
@@ -230,7 +245,7 @@ watch(selectedEmpType, handleFilter);
 
         <!-- description column -->
         <template #item.description="{ item }">
-          <span>{{ item.raw.description }}</span>
+          <span>{{ truncateDescription(item.raw.description) }}</span>
         </template>
 
         <template #item.status="{ item }">
