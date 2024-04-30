@@ -1,6 +1,7 @@
 <script setup>
 // job listing page
 
+//Imports
 import EditJobApplicationDrawer from "@/views/apps/user/list/EditJobApplicationDrawer.vue";
 import { ref } from "vue";
 import { toast } from "vue3-toastify";
@@ -10,6 +11,7 @@ import { jobApplicationHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn } from "@vueuse/core";
 import { useJobApplicationStore } from "../store/useJobApplication";
 
+//Data
 const deleteDialog = ref(false);
 const isAddJobApplicationDrawerVisible = ref(false);
 const editJobApplicationData = ref(null);
@@ -22,6 +24,7 @@ const { jobApplicationList, loading, pagination } =
   storeToRefs(jobApplicationStore);
 const { fetchJobApplicationData } = jobApplicationStore;
 
+//return status and color
 const getStatusDisplay = (statusCode) => {
   let status = "";
   let color = "";

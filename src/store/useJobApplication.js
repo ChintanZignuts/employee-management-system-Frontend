@@ -1,4 +1,4 @@
-// store for fetch job data from backend
+// store for fetch job application data from backend
 
 import axios from "../axiosConfig";
 import { defineStore } from "pinia";

@@ -1,6 +1,7 @@
 <script setup>
 // job listing page
 
+//Imports
 import AddJobDrawer from "@/views/apps/user/list/AddJobDrawer.vue";
 import { ref } from "vue";
 import { toast } from "vue3-toastify";
@@ -10,6 +11,7 @@ import { jobHeaders } from "../utils/dataTableHeaders";
 import { useDebounceFn } from "@vueuse/core";
 import { useJobStore } from "../store/useJob";
 
+//Data
 const deleteDialog = ref(false);
 const isAddJobDrawerVisible = ref(false);
 const editJobData = ref(null);
@@ -72,15 +74,18 @@ const openAddJobDrawer = async (jobData) => {
   }
 };
 
+//function for open dialog
 const deleteItem = (item) => {
   deleteItemId.value = item;
   deleteDialog.value = true;
 };
 
+//function for close dialog
 const closeDelete = () => {
   deleteDialog.value = false;
 };
 
+//function for handle delete api call
 const deleteItemConfirm = async () => {
   try {
     await axios.post(`job/delete/${deleteItemId.value}`, {
@@ -124,6 +129,7 @@ const addNewJob = async (jobData) => {
   loading.value = false;
 };
 
+//function for search,pagination,filter
 const handleSearch = useDebounceFn(() => {
   fetchJobData(1, search.value, selectedEmpType.value);
 }, 500);
@@ -136,6 +142,7 @@ const handleFilter = () => {
   fetchJobData(1, "", selectedEmpType.value);
 };
 
+//return backend image url
 const fetchImage = (url) => {
   const BASEURL = "http://127.0.0.1:8000/storage/logos/";
   const image = BASEURL + `${url}`;
@@ -143,6 +150,7 @@ const fetchImage = (url) => {
   return image;
 };
 
+//run handleFilter function when change in selectedEmpType
 watch(selectedEmpType, handleFilter);
 </script>
 
@@ -170,6 +178,7 @@ watch(selectedEmpType, handleFilter);
               outlined
             />
           </VCol>
+
           <VCol cols="12" md="4">
             <AppSelect
               v-model="selectedEmpType"
@@ -183,6 +192,7 @@ watch(selectedEmpType, handleFilter);
           </VCol>
         </VRow>
       </VCardText>
+
       <VDataTableServer
         v-model:items-per-page="pagination.per_page"
         :headers="jobHeaders"
@@ -203,6 +213,7 @@ watch(selectedEmpType, handleFilter);
                 >{{ item.raw.title }}</span
               >
             </div>
+
             <div>
               <VChip
                 v-for="(skill, index) in item.raw.required_skills"
@@ -232,6 +243,7 @@ watch(selectedEmpType, handleFilter);
             {{ resolveJobStatus(item.raw.expiry_date).text }}
           </VChip>
         </template>
+
         <template #item.posted="{ item }">
           <span>{{ item.raw.posted_date }}</span>
         </template>
@@ -242,6 +254,7 @@ watch(selectedEmpType, handleFilter);
             {{ item.raw.employment_type }}
           </VChip>
         </template>
+
         <template #item.name="{ item }">
           <VChip pill>
             <VAvatar
@@ -271,6 +284,7 @@ watch(selectedEmpType, handleFilter);
         </template>
       </VDataTableServer>
     </div>
+
     <VDialog v-model="deleteDialog" max-width="500px">
       <VCard class="align-center d-flex justify-center ma-5">
         <VCardTitle> Are you sure you want to delete this item? </VCardTitle>
@@ -280,6 +294,7 @@ watch(selectedEmpType, handleFilter);
             label=" Delete Company Permanent"
           />
         </div>
+
         <VCardActions class="mt-5">
           <VSpacer />
           <VBtn color="error" variant="outlined" @click="closeDelete">
@@ -292,6 +307,7 @@ watch(selectedEmpType, handleFilter);
         </VCardActions>
       </VCard>
     </VDialog>
+
     <AddJobDrawer
       v-model:isJobDrawerOpen="isAddJobDrawerVisible"
       :job-data="editJobData"

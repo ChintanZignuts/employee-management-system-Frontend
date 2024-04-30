@@ -1,5 +1,5 @@
 <script setup>
-//drawer form for create and edit job
+//drawer form for edit job application
 
 //imports
 import AppTextarea from "@/@core/components/app-form-elements/AppTextarea.vue";
@@ -34,7 +34,6 @@ const isFormValid = ref(false);
 const refForm = ref();
 
 //ref for form data
-
 const Resume = ref(null);
 const CoverLatter = ref(null);
 const Status = ref(null);
@@ -126,6 +125,7 @@ const handleDrawerModelValueUpdate = (val) => {
                   label="Applicant Name"
                 />
               </VCol>
+
               <VCol cols="12">
                 <VTextField v-model="JobTitle" disabled label="Job Title" />
               </VCol>

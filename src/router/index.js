@@ -7,6 +7,8 @@ const router = createRouter({
   routes: [...setupLayouts(routes)],
 });
 
+
+//function for auth guard
 router.beforeEach(async (to, from, next) => {
   const access_token = localStorage.getItem("token");
 

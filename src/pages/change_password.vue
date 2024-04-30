@@ -9,17 +9,21 @@ import { ref } from "vue";
 import { toast } from "vue3-toastify";
 import axios from "../axiosConfig";
 
+// Form data for old password, new password, and confirm password
 const form = ref({
   oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
 
+// Data
+
 const formRef = ref("");
 const isNewPasswordVisible = ref(false);
 const isConfirmPasswordVisible = ref(false);
 const isCurrentPasswordVisible = ref(false);
 
+// Function to handle password reset
 const handleResetPassword = async () => {
   try {
     const validate = await formRef.value?.validate();
@@ -40,6 +44,7 @@ const handleResetPassword = async () => {
 </script>
 
 <template>
+  <!-- Password Change Form -->
   <div class="d-flex justify-center">
     <VCol cols="6">
       <VCard title="Change Password">
