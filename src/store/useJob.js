@@ -28,7 +28,7 @@ export const useJobStore = defineStore("job", () => {
         },
       };
       if (token.value) {
-        const response = await axios.get("jobs/company", config);
+        const response = await axios.get("job/company", config);
 
         jobList.value = response.data.data.data;
         pagination.value = response.data.data;
