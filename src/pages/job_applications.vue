@@ -81,7 +81,6 @@ const EditJobApplication = async (jobApplicationData) => {
       jobApplicationData
     );
 
-    console.log("Job Application updated successfully:", response.data);
     toast.success(response.data.message);
 
     fetchJobApplicationData(1);

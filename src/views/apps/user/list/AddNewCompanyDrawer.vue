@@ -92,7 +92,7 @@ watch(
 const onSubmit = async () => {
   try {
     let validation = await refForm.value?.validate();
-    console.log(validation);
+
     if (validation.valid) {
       const formData = new FormData();
 
@@ -119,7 +119,7 @@ const onSubmit = async () => {
       if (!props.companyData) {
         formData.append("admin[email]", AdminEmail.value);
       }
-      console.log(formData);
+
       emit("userData", formData);
 
       refForm.value?.resetValidation();

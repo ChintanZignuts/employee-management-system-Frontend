@@ -162,7 +162,7 @@ const handleSearch = useDebounceFn(() => {
 
 //handle the pagination
 const handlePagination = (page) => {
-  console.log("Page:", page);
+  
   fetchCompanyData(page);
 };
 

@@ -102,7 +102,6 @@ const addNewEmployee = async (employeeData) => {
         employeeData
       );
 
-      console.log("Employee updated successfully:", response.data);
       toast.success("Employee updated successfully");
     } else {
       const response = await axios.post("employee/create", employeeData);

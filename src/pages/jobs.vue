@@ -111,7 +111,6 @@ const addNewJob = async (jobData) => {
         jobData
       );
 
-      console.log("User updated successfully:", response.data);
       toast.success(response.data.message);
     } else {
       const response = await axios.post("job/create", jobData);
