@@ -55,7 +55,7 @@ const openEditJobApplicationDrawer = async (jobApplicationData) => {
   if (jobApplicationData) {
     try {
       const response = await axios.get(
-        `job_applications/show/${jobApplicationData.id}`
+        `job_application/show/${jobApplicationData.id}`
       );
 
       editJobApplicationData.value = response.data.data;
