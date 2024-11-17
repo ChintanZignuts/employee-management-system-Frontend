@@ -8,6 +8,7 @@ import { PerfectScrollbar } from "vue3-perfect-scrollbar"
 import { skills } from "../../../../utils/requiredSkills"
 import { useCompanyStore } from "../../../../store/useCompany"
 
+
 //props
 const props = defineProps({
   isJobDrawerOpen: {
@@ -139,10 +140,12 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- 👉 Title -->
     <AppDrawerHeaderSection
-      :title="props.jobData ? 'Edit Job' : 'Add Job'"
+      title="Apply to Documents"
       @cancel="closeNavigationDrawer"
     />
-
+    <p class="container mx-5">
+      please select document type to save
+    </p>
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
@@ -156,33 +159,34 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <AppTextField
                   v-model="Title"
+                  placeholder="Folder name"
                   :rules="[requiredValidator]"
-                  label="Title"
-                />
-              </VCol>
-
-              <!-- 👉 Job Description -->
-              <VCol cols="12">
-                <AppTextarea
-                  v-model="Description"
-                  clearable
-                  clear-icon="tabler-circle-x"
-                  :rules="[requiredValidator]"
-                  label="Description"
+                  label="Name"
                 />
               </VCol>
 
               <!-- 👉 Employment Type -->
-              <VCol cols="12">
-                <AppAutocomplete
-                  v-model="EmploymentType"
-                  label="Employment Type"
-                  item-title="title"
-                  item-value="title"
-                  :items="EmploymentOptions"
-                  :rules="[requiredValidator]"
-                />
-              </VCol>
+              <VCard
+                class="elevation-0 w-100 border"
+                cols="12"
+              >
+                <VCardTitle class="text-black">
+                  <VIcon class="me-2">
+                    mdi-document
+                  </VIcon>New Documents
+                  <VSwitch v-model="toggleSwitch" />
+                </VCardTitle>
+                <VCol cols="12">
+                  <AppAutocomplete
+                    v-model="EmploymentType"
+                    label="Employment Type"
+                    item-title="title"
+                    item-value="title"
+                    :items="EmploymentOptions"
+                    :rules="[requiredValidator]"
+                  />
+                </VCol>
+              </VCard>
 
               <!-- 👉 Salary -->
               <VCol cols="12">
