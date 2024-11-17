@@ -45,6 +45,7 @@ const userListMeta = computed(() => {
       title: "Users",
       stats: userData.value ? userData.value.user_count : "N/A",
       subtitle: "Total Users on over platform",
+      route: "/",
     },
     {
       icon: "tabler-users-group",
@@ -52,6 +53,7 @@ const userListMeta = computed(() => {
       title: "Total employee",
       stats: userData.value ? userData.value.employee_count : "N/A",
       subtitle: "Company employee and Company Admin",
+      route: "/employee",
     },
     {
       icon: "tabler-building-estate",
@@ -59,6 +61,7 @@ const userListMeta = computed(() => {
       title: "Total company",
       stats: userData.value ? userData.value.company_count : "N/A",
       subtitle: "Number of Company Associated with Us",
+      route: "/company",
     },
     {
       icon: "tabler-briefcase",
@@ -66,6 +69,7 @@ const userListMeta = computed(() => {
       title: "Total available Job",
       stats: userData.value ? userData.value.job_count : "N/A",
       subtitle: "Number of job opening currently active",
+      route: "/jobs",
     },
   ];
 });
@@ -85,6 +89,7 @@ onMounted(() => {
         sm="6"
         lg="3"
       >
+        <RouterLink :to="meta.route">
         <VCard class="h-100">
           <VCardText class="d-flex justify-space-between">
             <div>
@@ -105,6 +110,7 @@ onMounted(() => {
             />
           </VCardText>
         </VCard>
+        </RouterLink>
       </VCol>
     </VRow>
   </div>

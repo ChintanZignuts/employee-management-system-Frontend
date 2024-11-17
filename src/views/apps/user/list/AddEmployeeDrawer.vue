@@ -1,10 +1,10 @@
 <script setup>
 //drawer form for create and
 
-import { emailValidator, requiredValidator } from "@validators";
-import { ref } from "vue";
-import { PerfectScrollbar } from "vue3-perfect-scrollbar";
-import { useCompanyStore } from "../../../../store/useCompany";
+import { emailValidator, requiredValidator } from "@validators"
+import { ref, onMounted } from "vue"
+import { PerfectScrollbar } from "vue3-perfect-scrollbar"
+import { useCompanyStore } from "../../../../store/useCompany"
 
 //props
 const props = defineProps({
@@ -16,62 +16,64 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-});
+})
 
 //const
-const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"]);
-const isFormValid = ref(false);
-const refForm = ref();
-const FirstName = ref("");
-const LastName = ref("");
-const Email = ref("");
-const Address = ref("");
-const City = ref("");
-const DOB = ref(null);
-const Salary = ref(null);
-const JoiningDate = ref(null);
-const CompanyId = ref(null);
-const companyStore = useCompanyStore();
+const emit = defineEmits(["update:isEmployeeDrawerOpen", "employeeData"])
+const isFormValid = ref(false)
+const refForm = ref()
+const FirstName = ref("")
+const LastName = ref("")
+const Email = ref("")
+const Address = ref("")
+const City = ref("")
+const DOB = ref(null)
+const Salary = ref(null)
+const JoiningDate = ref(null)
+const CompanyId = ref(null)
+const companyStore = useCompanyStore()
 
-const { companyOptions } = storeToRefs(companyStore);
+const { companyOptions } = storeToRefs(companyStore)
+
+
 //function for clear form
 const clearForm = () => {
-  refForm.value?.reset();
-  DOB.value = "";
-  JoiningDate.value = "";
-  refForm.value?.resetValidation();
-};
+  refForm.value?.reset()
+  DOB.value = ""
+  JoiningDate.value = ""
+  refForm.value?.resetValidation()
+}
 
 //function for close drawer
 const closeNavigationDrawer = () => {
-  emit("update:isEmployeeDrawerOpen", false);
-  clearForm();
-};
+  emit("update:isEmployeeDrawerOpen", false)
+  clearForm()
+}
 
 //watcher for set fields from props data
 watch(
   () => props.employeeData,
-  (newValue) => {
+  newValue => {
     if (newValue) {
-      FirstName.value = newValue.first_name;
-      LastName.value = newValue.last_name;
-      Email.value = newValue.email;
-      Address.value = newValue.address;
-      City.value = newValue.city;
-      DOB.value = newValue.dob;
-      Salary.value = newValue.salary;
-      JoiningDate.value = newValue.joining_date;
-      CompanyId.value = newValue.company_id;
+      FirstName.value = newValue.first_name
+      LastName.value = newValue.last_name
+      Email.value = newValue.email
+      Address.value = newValue.address
+      City.value = newValue.city
+      DOB.value = newValue.dob
+      Salary.value = newValue.salary
+      JoiningDate.value = newValue.joining_date
+      CompanyId.value = newValue.company_id
     } else {
-      clearForm();
+      clearForm()
     }
-  }
-);
+  },
+)
 
 // function for handle for submission and emit the function
 const onSubmit = async () => {
   try {
-    let validate = await refForm.value?.validate();
+    let validate = await refForm.value?.validate()
 
     if (validate.valid) {
       const formData = {
@@ -83,26 +85,30 @@ const onSubmit = async () => {
         dob: DOB.value,
         salary: Salary.value,
         joining_date: JoiningDate.value,
-      };
+      }
 
       if (!props.employeeData) {
-        formData.company_id = CompanyId.value;
+        formData.company_id = CompanyId.value
       }
-      emit("employeeData", formData);
-      closeNavigationDrawer();
+      emit("employeeData", formData)
+      closeNavigationDrawer()
       nextTick(() => {
-        clearForm();
-      });
+        clearForm()
+      })
     }
   } catch (error) {
-    notify("error", "Failed to submit form");
-    console.error("Error:", error.message);
+    notify("error", "Failed to submit form")
+    console.error("Error:", error.message)
   }
-};
+}
 
-const handleDrawerModelValueUpdate = (val) => {
-  emit("update:isEmployeeDrawerOpen", val);
-};
+const handleDrawerModelValueUpdate = val => {
+  emit("update:isEmployeeDrawerOpen", val)
+}
+
+onMounted(() => {
+  companyOptions
+})
 </script>
 
 <template>
@@ -123,7 +129,11 @@ const handleDrawerModelValueUpdate = (val) => {
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+          <VForm
+            ref="refForm"
+            v-model="isFormValid"
+            @submit.prevent="onSubmit"
+          >
             <VRow>
               <!-- 👉 First name -->
               <VCol cols="12">
@@ -181,7 +191,11 @@ const handleDrawerModelValueUpdate = (val) => {
 
               <!-- 👉 Salary -->
               <VCol cols="12">
-                <AppTextField v-model="Salary" label="Salary" type="number" />
+                <AppTextField
+                  v-model="Salary"
+                  label="Salary"
+                  type="number"
+                />
               </VCol>
 
               <!-- 👉 Joining date -->
@@ -209,7 +223,12 @@ const handleDrawerModelValueUpdate = (val) => {
 
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">
-                <VBtn type="submit" class="me-3"> Submit </VBtn>
+                <VBtn
+                  type="submit"
+                  class="me-3"
+                >
+                  Submit
+                </VBtn>
                 <VBtn
                   variant="tonal"
                   color="secondary"
