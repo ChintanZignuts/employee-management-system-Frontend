@@ -1,19 +1,21 @@
-import axios from "axios";
+import axios from "axios"
 
-axios.defaults.baseURL = "http://127.0.0.1:8000/api";
+axios.defaults.baseURL = "http://98.81.141.113:80/api"
 
 axios.interceptors.request.use(
   function (config) {
-    const access_token = localStorage.getItem("token");
+    const access_token = localStorage.getItem("token")
     if (access_token) {
-      config.headers.Authorization = `Bearer ${access_token}`;
+      config.headers.Authorization = `Bearer ${access_token}`
     }
-    return config;
+    
+    return config
   },
   function (error) {
-    console.log(error);
-    return Promise.reject(error);
-  }
-);
+    console.log(error)
+    
+    return Promise.reject(error)
+  },
+)
 
-export default axios;
+export default axios
